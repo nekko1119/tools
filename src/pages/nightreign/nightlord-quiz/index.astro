@@ -1,13 +1,15 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <Layout
   title="標的不明クイズ - Nightreign"
   description="ヒントから夜の王を当てるクイズ。"
   breadcrumbs={[
-    { label: "ツール類", href: "/" },
-    { label: "Nightreign", href: "/nightreign/" },
+    { label: "ツール類", href: base },
+    { label: "Nightreign", href: `${base}nightreign/` },
     { label: "標的不明クイズ" },
   ]}
 >
@@ -147,6 +149,6 @@ import Layout from "../../../layouts/Layout.astro";
     const difficulty = selectedDifficulty?.value ?? "normal";
     const dlc = selectedDlc?.value ?? "on";
     const params = new URLSearchParams({ difficulty, dlc });
-    location.href = `/nightreign/nightlord-quiz/quiz?${params.toString()}`;
+    location.href = `${import.meta.env.BASE_URL}nightreign/nightlord-quiz/quiz?${params.toString()}`;
   });
 </script>
