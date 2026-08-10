@@ -1,0 +1,36 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const links = [
+  {
+    href: "/nightreign/",
+    title: "Nightreign",
+    description: "ELDEN RING NIGHTREIGN 関連のツール",
+  },
+];
+---
+
+<Layout title="ツール類" breadcrumbs={[{ label: "ツール類" }]}>
+  <main class="container mx-auto p-4 max-w-2xl min-w-80">
+    <h1 class="text-3xl font-bold mb-2">ツール類</h1>
+    <p class="text-sm text-base-content/70 mb-6">
+      色んなゲームのツールを思いついたら増やしていきます。タイトルごとにまとめています。
+    </p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class="card bg-base-200 hover:bg-base-300 transition-colors"
+          >
+            <div class="card-body">
+              <h2 class="card-title">{link.title}</h2>
+              <p class="text-sm text-base-content/70">{link.description}</p>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </main>
+</Layout>

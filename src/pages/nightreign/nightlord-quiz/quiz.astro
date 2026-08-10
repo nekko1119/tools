@@ -1,0 +1,199 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import patternsRaw from "../../../../data/nightreign_map_pattern.json";
+import type {
+  NightreignMapPattern,
+  QuizPattern,
+  PatternSet,
+  Nightlord,
+} from "../../../types/nightreign";
+
+const patterns = patternsRaw as NightreignMapPattern[];
+
+const yamlText = readFileSync(
+  resolve(process.cwd(), "data/nightreign_translations.yaml"),
+  "utf-8",
+);
+const translations: Record<string, string> = {};
+for (const line of yamlText.split("\n")) {
+  const match = line.match(/^([^#\s][^:]*?):\s*"(.*)"\s*$/);
+  if (match) {
+    translations[match[1].trim()] = match[2];
+  }
+}
+
+function buildUniquePatterns(
+  sourcePatterns: NightreignMapPattern[],
+  keyOf: (p: NightreignMapPattern) => string,
+  toBase: (p: NightreignMapPattern) => Omit<QuizPattern, "correctNightlords">,
+): QuizPattern[] {
+  const map = new Map<string, QuizPattern>();
+  for (const p of sourcePatterns) {
+    const key = keyOf(p);
+    if (!map.has(key)) {
+      map.set(key, { ...toBase(p), correctNightlords: [] });
+    }
+    const entry = map.get(key)!;
+    if (!entry.correctNightlords.includes(p.nightlord)) {
+      entry.correctNightlords.push(p.nightlord);
+    }
+  }
+  return Array.from(map.values());
+}
+
+function collectNightlords(
+  sourcePatterns: NightreignMapPattern[],
+): Nightlord[] {
+  return sourcePatterns.reduce<Nightlord[]>((acc, p) => {
+    if (!acc.includes(p.nightlord)) acc.push(p.nightlord);
+    return acc;
+  }, []);
+}
+
+// 中級/初級用: 全フィールドの組み合わせごとに正解の夜の王をまとめる
+const fullKeyOf = (p: NightreignMapPattern) =>
+  [
+    p.shiftingEarth,
+    p.specialEvent,
+    p.night1Boss,
+    p.night2Boss,
+    p.extraNightBoss,
+  ].join("\x00");
+const fullToBase = (p: NightreignMapPattern) => ({
+  shiftingEarth: p.shiftingEarth,
+  specialEvent: p.specialEvent,
+  night1Boss: p.night1Boss,
+  night2Boss: p.night2Boss,
+  extraNightBoss: p.extraNightBoss,
+});
+
+// 上級用: 2日目ボスを除いた組み合わせごとに正解の夜の王をまとめる(非表示の2日目ボス違いは全員正解になる)
+const hardKeyOf = (p: NightreignMapPattern) =>
+  [p.shiftingEarth, p.specialEvent, p.night1Boss, p.extraNightBoss].join(
+    "\x00",
+  );
+const hardToBase = (p: NightreignMapPattern) => ({
+  shiftingEarth: p.shiftingEarth,
+  specialEvent: p.specialEvent,
+  night1Boss: p.night1Boss,
+  extraNightBoss: p.extraNightBoss,
+});
+
+function buildPatternSet(sourcePatterns: NightreignMapPattern[]): PatternSet {
+  return {
+    unique: buildUniquePatterns(sourcePatterns, fullKeyOf, fullToBase),
+    hard: buildUniquePatterns(sourcePatterns, hardKeyOf, hardToBase),
+    nightlords: collectNightlords(sourcePatterns),
+  };
+}
+
+// isDLC のみを判定基準として、DLCあり/なしそれぞれの出題プールを事前に構築する
+const patternsByDlc: { on: PatternSet; off: PatternSet } = {
+  on: buildPatternSet(patterns),
+  off: buildPatternSet(patterns.filter((p) => !p.isDLC)),
+};
+
+// </script> によるスクリプトタグの終了を防ぐためエスケープする
+const quizDataJson = JSON.stringify({ patternsByDlc, translations }).replace(
+  /</g,
+  "\\u003c",
+);
+---
+
+<Layout
+  title="標的不明クイズ - Nightreign"
+  breadcrumbs={[
+    { label: "ツール類", href: "/" },
+    { label: "Nightreign", href: "/nightreign/" },
+    { label: "標的不明クイズ", href: "/nightreign/nightlord-quiz/" },
+    { label: "クイズ" },
+  ]}
+>
+  <main class="container mx-auto p-4 max-w-2xl min-w-80">
+    <div class="mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-2xl font-bold">標的不明クイズ</h1>
+        <a href="/nightreign/nightlord-quiz/" class="btn btn-sm btn-ghost"
+          >スタート画面に戻る</a
+        >
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mt-2">
+        <span id="difficulty-badge" class="badge badge-outline"></span>
+        <span id="dlc-badge" class="badge badge-outline"></span>
+      </div>
+    </div>
+
+    <div id="quiz-view">
+      <p id="question-counter" class="text-lg font-bold mb-4"></p>
+
+      <div class="card bg-base-200 mb-4">
+        <div class="card-body p-4">
+          <table class="table" id="fields-table"></table>
+        </div>
+      </div>
+
+      <div id="multiple-hint" class="alert alert-warning mb-4 hidden">
+        <span>この問題は複数の夜の王が正解です。全員選択してください。</span>
+      </div>
+
+      <div id="nightlord-grid" class="grid grid-cols-2 gap-2 mb-4"></div>
+
+      <button id="submit-btn" class="btn btn-primary w-full">回答する</button>
+      <button id="next-btn" class="btn btn-primary w-full hidden"
+        >次の問題へ</button
+      >
+
+      <div id="feedback-panel" class="card bg-base-200 mt-4 hidden">
+        <div class="card-body p-4">
+          <p id="feedback-result" class="font-bold text-xl mb-2"></p>
+          <p class="text-sm font-medium mb-1">正解:</p>
+          <div id="correct-answer" class="text-sm"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-view" class="hidden">
+      <h2 class="text-xl font-bold mb-2">結果</h2>
+      <p class="text-4xl font-bold mb-6"><span id="score"></span> / 10</p>
+
+      <div class="overflow-x-auto mb-6">
+        <table class="table table-zebra text-sm">
+          <thead>
+            <tr>
+              <th>問</th>
+              <th>表示フィールド</th>
+              <th>あなたの回答</th>
+              <th>正解</th>
+              <th>判定</th>
+            </tr>
+          </thead>
+          <tbody id="result-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+        <a
+          id="share-btn"
+          href=""
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-neutral flex-1 h-auto py-3">𝕏 でシェア</a
+        >
+        <a
+          href="/nightreign/nightlord-quiz/"
+          class="btn btn-primary flex-1 h-auto py-3">スタート画面に戻る</a
+        >
+      </div>
+    </div>
+  </main>
+  <footer class="container mx-auto p-4 max-w-2xl mt-8 border-t border-base-300">
+    <p class="text-xs text-base-content/50">
+      ※ 掲載データの正確性を保証するものではありません。
+    </p>
+  </footer>
+</Layout>
+
+<script type="application/json" id="quiz-data" set:html={quizDataJson} />
+<script src="../../../scripts/nightreign/nightlord-quiz.ts"></script>

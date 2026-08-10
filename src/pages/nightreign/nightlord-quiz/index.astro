@@ -1,0 +1,149 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+---
+
+<Layout
+  title="標的不明クイズ - Nightreign"
+  breadcrumbs={[
+    { label: "ツール類", href: "/" },
+    { label: "Nightreign", href: "/nightreign/" },
+    { label: "標的不明クイズ" },
+  ]}
+>
+  <main class="container mx-auto p-4 max-w-2xl min-w-80">
+    <h1 class="text-2xl font-bold mb-6">標的不明クイズ</h1>
+
+    <div class="card bg-base-200 mb-6">
+      <div class="card-body p-4">
+        <h2 class="card-title text-lg mb-2">ルール</h2>
+        <ul class="list-disc list-inside space-y-1 text-sm">
+          <li>
+            1日目ボス・2日目ボス・地変・イベント・追加ボスといったヒントから、対応する「夜の王」を当てる全10問のクイズです。
+          </li>
+          <li>
+            同じヒントの組み合わせに複数の夜の王が対応することがあります。出題されるかどうか・頻度は難易度によって異なります。該当する問題では注意書きが表示されるので、対象を全て選択してください。
+          </li>
+          <li>
+            1問ごとに回答すると正解・不正解と正解の夜の王が表示されます。「次の問題へ」で次に進みます。
+          </li>
+          <li>
+            全問終了後、スコアと全問の回答一覧が表示されます。結果はXでシェアできます。
+          </li>
+          <li>掲載データの正確性を保証するものではありません。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card bg-base-200 mb-6">
+      <div class="card-body p-4">
+        <h2 class="card-title text-lg mb-4">クイズの設定</h2>
+
+        <form id="settings-form">
+          <p class="text-sm font-medium mb-2">難易度</p>
+          <div class="join w-full mb-3" role="radiogroup" aria-label="難易度">
+            <input
+              type="radio"
+              name="difficulty"
+              value="easy"
+              class="join-item btn flex-1"
+              aria-label="初級"
+            />
+            <input
+              type="radio"
+              name="difficulty"
+              value="normal"
+              class="join-item btn flex-1"
+              aria-label="中級"
+              checked
+            />
+            <input
+              type="radio"
+              name="difficulty"
+              value="hard"
+              class="join-item btn flex-1"
+              aria-label="上級"
+            />
+          </div>
+          <ul
+            class="list-disc list-inside space-y-1 text-xs text-base-content/70 mb-4"
+          >
+            <li>
+              <span class="font-semibold">初級</span>:
+              4択から選ぶ形式です。複数正解の問題は出題されません。
+            </li>
+            <li>
+              <span class="font-semibold">中級</span>:
+              全ての夜の王から選ぶ形式です。10問中1問は複数正解の問題が出題されます。
+            </li>
+            <li>
+              <span class="font-semibold">上級</span>:
+              2日目ボスの情報が表示されません。該当する夜の王が複数いる場合は全員が正解になります。
+            </li>
+          </ul>
+
+          <p class="text-sm font-medium mb-2">DLC</p>
+          <div class="join w-full mb-3" role="radiogroup" aria-label="DLC">
+            <input
+              type="radio"
+              name="dlc"
+              value="on"
+              class="join-item btn flex-1"
+              aria-label="あり"
+              checked
+            />
+            <input
+              type="radio"
+              name="dlc"
+              value="off"
+              class="join-item btn flex-1"
+              aria-label="なし"
+            />
+          </div>
+          <ul
+            class="list-disc list-inside space-y-1 text-xs text-base-content/70 mb-4"
+          >
+            <li>
+              <span class="font-semibold">あり</span>:
+              全ての夜の王・地変が出題対象です。
+            </li>
+            <li>
+              <span class="font-semibold">なし</span>:
+              夜の王「ハルモニア」「ストラゲス」の問題、地変「大空洞」の問題は出題されません。
+            </li>
+          </ul>
+
+          <p class="text-xs text-base-content/50 mb-4">
+            ※ その他の設定は今後追加予定です。
+          </p>
+
+          <button type="submit" class="btn btn-primary w-full"
+            >クイズを始める</button
+          >
+        </form>
+      </div>
+    </div>
+  </main>
+  <footer class="container mx-auto p-4 max-w-2xl mt-8 border-t border-base-300">
+    <p class="text-xs text-base-content/50">
+      ※ 掲載データの正確性を保証するものではありません。
+    </p>
+  </footer>
+</Layout>
+
+<script>
+  const form = document.getElementById("settings-form") as HTMLFormElement;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const selectedDifficulty = form.querySelector<HTMLInputElement>(
+      'input[name="difficulty"]:checked',
+    );
+    const selectedDlc = form.querySelector<HTMLInputElement>(
+      'input[name="dlc"]:checked',
+    );
+    const difficulty = selectedDifficulty?.value ?? "normal";
+    const dlc = selectedDlc?.value ?? "on";
+    const params = new URLSearchParams({ difficulty, dlc });
+    location.href = `/nightreign/nightlord-quiz/quiz?${params.toString()}`;
+  });
+</script>
