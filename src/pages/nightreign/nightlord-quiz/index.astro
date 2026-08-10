@@ -4,6 +4,7 @@ import Layout from "../../../layouts/Layout.astro";
 
 <Layout
   title="標的不明クイズ - Nightreign"
+  description="ヒントから夜の王を当てるクイズ。"
   breadcrumbs={[
     { label: "ツール類", href: "/" },
     { label: "Nightreign", href: "/nightreign/" },
@@ -17,15 +18,11 @@ import Layout from "../../../layouts/Layout.astro";
       <div class="card-body p-4">
         <h2 class="card-title text-lg mb-2">ルール</h2>
         <ul class="list-disc list-inside space-y-1 text-sm">
-          <li>
-            1日目ボス・2日目ボス・地変・イベント・追加ボスといったヒントから、対応する「夜の王」を当てる全10問のクイズです。
-          </li>
+          <li>ヒントから、対応する「夜の王」を当てる全10問のクイズです。</li>
           <li>
             同じヒントの組み合わせに複数の夜の王が対応することがあります。該当する問題では注意書きが表示されるので、対象を全て選択してください。
           </li>
-          <li>
-            全問終了後、スコアと全問の回答一覧が表示されます。結果はXでシェアできます。
-          </li>
+          <li>全問終了後、スコアと全問の回答一覧が表示されます。</li>
           <li>掲載データの正確性を保証するものではありません。</li>
         </ul>
       </div>
@@ -105,7 +102,7 @@ import Layout from "../../../layouts/Layout.astro";
   const DIFFICULTY_DESCRIPTIONS: Record<string, string> = {
     easy: "4択から選ぶ形式です。複数正解の問題は出題されません。",
     normal: "全ての夜の王から選ぶ形式です。複数正解の問題も出題されます。",
-    hard: "2日目ボスの情報が表示されません。該当する夜の王が複数いる場合は全員答えてください。",
+    hard: "2日目ボスの情報が表示されません。該当する夜の王が複数いる場合は全て選択してください。",
   };
 
   const DLC_DESCRIPTIONS: Record<string, string> = {

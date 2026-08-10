@@ -4,10 +4,11 @@ import Header, { type Breadcrumb } from "../components/Header.astro";
 
 interface Props {
   title: string;
+  description: string;
   breadcrumbs: Breadcrumb[];
 }
 
-const { title, breadcrumbs } = Astro.props;
+const { title, description, breadcrumbs } = Astro.props;
 ---
 
 <html lang="ja">
@@ -18,6 +19,12 @@ const { title, breadcrumbs } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ツール類" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={Astro.url.href} />
   </head>
   <body>
     <Header breadcrumbs={breadcrumbs} />
