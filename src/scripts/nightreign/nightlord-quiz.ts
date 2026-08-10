@@ -224,8 +224,9 @@ function showResult(): void {
   const score = answers.filter((a) => a.isCorrect).length;
   getElement("score").textContent = String(score);
 
+  const startPageUrl = `${location.origin}${import.meta.env.BASE_URL}nightreign/nightlord-quiz/`;
   const shareText = `標的不明クイズ(難易度: ${difficultyConfig.label}), ${score} / ${TOTAL_QUESTIONS} 問正解！ #nightreign`;
-  const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(location.href)}`;
+  const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(startPageUrl)}`;
   getElement<HTMLAnchorElement>("share-btn").href = shareUrl;
 
   getElement("result-tbody").innerHTML = answers
