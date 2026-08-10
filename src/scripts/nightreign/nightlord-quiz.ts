@@ -224,7 +224,7 @@ function showResult(): void {
   const score = answers.filter((a) => a.isCorrect).length;
   getElement("score").textContent = String(score);
 
-  const shareText = `標的不明クイズ(難易度: ${difficultyConfig.label}, DLC: ${dlcEnabled ? "あり" : "なし"}): ${score} / ${TOTAL_QUESTIONS} 問正解！ #ELDENRING_NIGHTREIGN`;
+  const shareText = `標的不明クイズ(難易度: ${difficultyConfig.label}), ${score} / ${TOTAL_QUESTIONS} 問正解！ #nightreign`;
   const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(location.href)}`;
   getElement<HTMLAnchorElement>("share-btn").href = shareUrl;
 

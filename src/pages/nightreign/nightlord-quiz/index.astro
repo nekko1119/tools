@@ -21,10 +21,7 @@ import Layout from "../../../layouts/Layout.astro";
             1日目ボス・2日目ボス・地変・イベント・追加ボスといったヒントから、対応する「夜の王」を当てる全10問のクイズです。
           </li>
           <li>
-            同じヒントの組み合わせに複数の夜の王が対応することがあります。出題されるかどうか・頻度は難易度によって異なります。該当する問題では注意書きが表示されるので、対象を全て選択してください。
-          </li>
-          <li>
-            1問ごとに回答すると正解・不正解と正解の夜の王が表示されます。「次の問題へ」で次に進みます。
+            同じヒントの組み合わせに複数の夜の王が対応することがあります。該当する問題では注意書きが表示されるので、対象を全て選択してください。
           </li>
           <li>
             全問終了後、スコアと全問の回答一覧が表示されます。結果はXでシェアできます。
@@ -64,22 +61,11 @@ import Layout from "../../../layouts/Layout.astro";
               aria-label="上級"
             />
           </div>
-          <ul
-            class="list-disc list-inside space-y-1 text-xs text-base-content/70 mb-4"
+          <p
+            id="difficulty-description"
+            class="text-xs text-base-content/70 mb-4"
           >
-            <li>
-              <span class="font-semibold">初級</span>:
-              4択から選ぶ形式です。複数正解の問題は出題されません。
-            </li>
-            <li>
-              <span class="font-semibold">中級</span>:
-              全ての夜の王から選ぶ形式です。10問中1問は複数正解の問題が出題されます。
-            </li>
-            <li>
-              <span class="font-semibold">上級</span>:
-              2日目ボスの情報が表示されません。該当する夜の王が複数いる場合は全員が正解になります。
-            </li>
-          </ul>
+          </p>
 
           <p class="text-sm font-medium mb-2">DLC</p>
           <div class="join w-full mb-3" role="radiogroup" aria-label="DLC">
@@ -99,22 +85,7 @@ import Layout from "../../../layouts/Layout.astro";
               aria-label="なし"
             />
           </div>
-          <ul
-            class="list-disc list-inside space-y-1 text-xs text-base-content/70 mb-4"
-          >
-            <li>
-              <span class="font-semibold">あり</span>:
-              全ての夜の王・地変が出題対象です。
-            </li>
-            <li>
-              <span class="font-semibold">なし</span>:
-              夜の王「ハルモニア」「ストラゲス」の問題、地変「大空洞」の問題は出題されません。
-            </li>
-          </ul>
-
-          <p class="text-xs text-base-content/50 mb-4">
-            ※ その他の設定は今後追加予定です。
-          </p>
+          <p id="dlc-description" class="text-xs text-base-content/70 mb-4"></p>
 
           <button type="submit" class="btn btn-primary w-full"
             >クイズを始める</button
@@ -131,7 +102,42 @@ import Layout from "../../../layouts/Layout.astro";
 </Layout>
 
 <script>
+  const DIFFICULTY_DESCRIPTIONS: Record<string, string> = {
+    easy: "4択から選ぶ形式です。複数正解の問題は出題されません。",
+    normal: "全ての夜の王から選ぶ形式です。複数正解の問題も出題されます。",
+    hard: "2日目ボスの情報が表示されません。該当する夜の王が複数いる場合は全員答えてください。",
+  };
+
+  const DLC_DESCRIPTIONS: Record<string, string> = {
+    on: "全ての夜の王・地変が出題対象です。",
+    off: "夜の王「ハルモニア」「ストラゲス」の問題、地変「大空洞」の問題は出題されません。",
+  };
+
   const form = document.getElementById("settings-form") as HTMLFormElement;
+  const difficultyDescription = document.getElementById(
+    "difficulty-description",
+  ) as HTMLParagraphElement;
+  const dlcDescription = document.getElementById(
+    "dlc-description",
+  ) as HTMLParagraphElement;
+
+  function updateDescriptions() {
+    const selectedDifficulty = form.querySelector<HTMLInputElement>(
+      'input[name="difficulty"]:checked',
+    );
+    const selectedDlc = form.querySelector<HTMLInputElement>(
+      'input[name="dlc"]:checked',
+    );
+    difficultyDescription.textContent = selectedDifficulty
+      ? DIFFICULTY_DESCRIPTIONS[selectedDifficulty.value]
+      : "";
+    dlcDescription.textContent = selectedDlc
+      ? DLC_DESCRIPTIONS[selectedDlc.value]
+      : "";
+  }
+
+  form.addEventListener("change", updateDescriptions);
+  updateDescriptions();
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
