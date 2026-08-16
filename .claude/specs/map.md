@@ -147,13 +147,14 @@ yaml のパーサは現在 `quiz.astro` に直書きされているため、地�
 
 ```
 src/assets/maps/great-church/
-  great_church_type_a_2f.webp
-  great_church_type_a_1f.webp
-  great_church_type_a_b1.webp
+  great_church_type_a_dark_2f.webp
+  great_church_type_a_dark_1f.webp
+  great_church_type_a_dark_b1.webp
 ```
 
 - ディレクトリ名は slug と同じケバブケース、ファイル名はスネークケース。
-- ファイル名は `拠点_タイプ_階層` の順とする。`underground` は地上/地下の区分を意味しないため付けない。
+- ファイル名は `拠点_タイプ_テーマ_階層` の順とする。`underground` は地上/地下の区分を意味しないため付けない。
+- ダークテーマ用の画像にも `dark` を付ける。後からライトテーマ用の `light` を同じ並びで追加できるようにするため。
 - 元の `data/great_church_underground_*.webp` は移動に伴い削除する。
 
 ## 将来の拡張
