@@ -23,7 +23,10 @@ if (firstFloor === undefined) {
 }
 
 // 拡大しても枠の大きさが変わらないよう、表示領域は画像の縦横比で固定する
-const aspectRatio = `${firstFloor.images.dark.width} / ${firstFloor.images.dark.height}`;
+const { width: mapWidth, height: mapHeight } = firstFloor.images.dark;
+const aspectRatio = `${mapWidth} / ${mapHeight}`;
+// 高さの上限から幅を割り出すために、縦横比を数値でも渡す
+const aspectValue = mapWidth / mapHeight;
 
 // 配置パターンが1つしかないときは選ぶ余地がないのでセレクタを出さない
 const hasPatternChoice = patterns.length > 1;
@@ -69,7 +72,7 @@ function findItemType(typeId: string): MapItemType {
 
 <div
   class="floor-switch"
-  style={`--floor-count: ${type.floors.length}; --map-aspect: ${aspectRatio};`}
+  style={`--floor-count: ${type.floors.length}; --map-aspect: ${aspectRatio}; --map-aspect-value: ${aspectValue};`}
   id={switchId}
   role="group"
   aria-label={`${mapName} の階層`}
@@ -189,6 +192,8 @@ function findItemType(typeId: string): MapItemType {
     gap: 0.75rem;
     /* スマホでは階層ボタンを地図の上に横並びで置き、幅を均等に分ける */
     grid-template-columns: repeat(var(--floor-count), minmax(0, 1fr));
+    /* 地図の表示領域の高さの上限 */
+    --map-max-height: 70vh;
   }
 
   /* 見た目はラベルが担うため radio は隠すが、キーボード操作と読み上げには残す */
@@ -224,6 +229,12 @@ function findItemType(typeId: string): MapItemType {
     /* 拡大した地図が枠からはみ出さないようにする */
     overflow: hidden;
     aspect-ratio: var(--map-aspect);
+    /* 縦に低い画面で地図全体を見るのに縦スクロールが要らないよう高さを抑える。
+       高さで頭打ちになったときは、縦横比を保つため幅も合わせて縮め、中央に寄せる */
+    width: 100%;
+    max-height: var(--map-max-height);
+    max-width: calc(var(--map-max-height) * var(--map-aspect-value));
+    margin-inline: auto;
     border-radius: var(--radius-box);
     /* JavaScript が読み込まれるまではページの縦スクロールを妨げない */
     touch-action: pan-y;
