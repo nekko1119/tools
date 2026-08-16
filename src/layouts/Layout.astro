@@ -6,9 +6,16 @@ interface Props {
   title: string;
   description: string;
   breadcrumbs: Breadcrumb[];
+  /** ヘッダーの内容幅。ページ本体の max-width と揃えるために渡す */
+  maxWidthClass?: string;
 }
 
-const { title, description, breadcrumbs } = Astro.props;
+const {
+  title,
+  description,
+  breadcrumbs,
+  maxWidthClass = "max-w-2xl",
+} = Astro.props;
 const base = import.meta.env.BASE_URL;
 ---
 
@@ -28,7 +35,7 @@ const base = import.meta.env.BASE_URL;
     <meta property="og:url" content={Astro.url.href} />
   </head>
   <body>
-    <Header breadcrumbs={breadcrumbs} />
+    <Header breadcrumbs={breadcrumbs} maxWidthClass={maxWidthClass} />
     <slot />
   </body>
 </html>
