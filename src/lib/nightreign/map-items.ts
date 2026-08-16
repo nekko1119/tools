@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
-import type { MapLocation, MapType } from "../../types/nightreign-map";
+import type { MapLocation } from "../../types/nightreign-map";
 import type {
   MapItem,
   MapItemPattern,
@@ -11,7 +11,7 @@ import type {
 /** プロジェクトルートからの配置ファイル置き場の相対パス */
 const PLACEMENT_DIR = "data/map-items";
 
-const EMPTY_PLACEMENT: MapItemPlacement = { patternsByTypeId: {} };
+const EMPTY_PLACEMENT: MapItemPlacement = { patterns: [] };
 
 function asRecord(value: unknown, context: string): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -70,14 +70,28 @@ function parseItem(
 
 function parsePattern(
   source: unknown,
-  mapType: MapType,
+  location: MapLocation,
   itemTypeIds: readonly string[],
   context: string,
 ): MapItemPattern {
   const record = asRecord(source, context);
+
   const name = record.name;
   if (typeof name !== "string" || name.length === 0) {
     throw new Error(`${context}に name を書いてください`);
+  }
+
+  const mapTypeId = record.type;
+  if (typeof mapTypeId !== "string") {
+    throw new Error(`${context}に type を書いてください`);
+  }
+  const mapType = location.types.find(
+    (candidate) => candidate.id === mapTypeId,
+  );
+  if (mapType === undefined) {
+    throw new Error(
+      `${context}の type「${mapTypeId}」は地図に定義されていません。定義されているのは ${location.types.map((t) => t.id).join(" / ")} です`,
+    );
   }
 
   const floors = asRecord(record.floors ?? {}, `${context}の floors`);
@@ -86,7 +100,7 @@ function parsePattern(
     const floor = mapType.floors.find((candidate) => candidate.id === floorId);
     if (floor === undefined) {
       throw new Error(
-        `${context}の階層「${floorId}」は地図に定義されていません。定義されているのは ${mapType.floors.map((f) => f.id).join(" / ")} です`,
+        `${context}の階層「${floorId}」はタイプ「${mapTypeId}」に定義されていません。定義されているのは ${mapType.floors.map((f) => f.id).join(" / ")} です`,
       );
     }
     const { width, height } = floor.images.dark;
@@ -104,7 +118,7 @@ function parsePattern(
     );
   }
 
-  return { name, itemsByFloorId };
+  return { name, mapTypeId, itemsByFloorId };
 }
 
 /**
@@ -118,30 +132,30 @@ export function parseMapItemPlacement(
   sourceName: string,
 ): MapItemPlacement {
   const root = asRecord(source, `${sourceName} の内容`);
-  const types = asRecord(root.types ?? {}, `${sourceName} の types`);
+  const patterns = asArray(
+    root.patterns ?? [],
+    `${sourceName} の patterns`,
+  ).map((rawPattern, index) =>
+    parsePattern(
+      rawPattern,
+      location,
+      itemTypeIds,
+      `${sourceName} の${index + 1}件目のパターン`,
+    ),
+  );
 
-  const patternsByTypeId: Record<string, readonly MapItemPattern[]> = {};
-  for (const [typeId, rawPatterns] of Object.entries(types)) {
-    const mapType = location.types.find((candidate) => candidate.id === typeId);
-    if (mapType === undefined) {
+  // 名前でパターンを選び分けるため、重複していると区別できない
+  const seenNames = new Set<string>();
+  for (const pattern of patterns) {
+    if (seenNames.has(pattern.name)) {
       throw new Error(
-        `${sourceName} のタイプ「${typeId}」は地図に定義されていません。定義されているのは ${location.types.map((t) => t.id).join(" / ")} です`,
+        `${sourceName} のパターン名「${pattern.name}」が重複しています`,
       );
     }
-    patternsByTypeId[typeId] = asArray(
-      rawPatterns,
-      `${sourceName} のタイプ「${typeId}」`,
-    ).map((rawPattern, index) =>
-      parsePattern(
-        rawPattern,
-        mapType,
-        itemTypeIds,
-        `${sourceName} のタイプ「${typeId}」の${index + 1}件目の配置`,
-      ),
-    );
+    seenNames.add(pattern.name);
   }
 
-  return { patternsByTypeId };
+  return { patterns };
 }
 
 /**

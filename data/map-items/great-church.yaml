@@ -10,35 +10,42 @@
 #   corpse       ... 遺体
 #   sacred_seal  ... 聖印
 #
-# types のキーは地図のタイプid、floors のキーは階層idです。
-# アイテムが無い階層は行ごと省略できます。
+# name は画面のセレクタに出る名前です。拠点内で重複させないでください。
+# type はどの地図を表示するかで、地図のタイプidを書きます。
+# floors のキーは、そのタイプの階層idです。アイテムが無い階層は行ごと省略できます。
 # 書き間違いはビルド時にエラーになります (pnpm build で確認できます)。
 
-types:
-  # タイプA - 地下がある
-  a:
-    - name: 無(霊廟騎士)
-      floors:
-        2f:
-          - { item: common_chest, x: 850, y: 500 }
-          - { item: common_chest, x: 760, y: 1020 }
-        1f:
-          - { item: rare_chest, x: 700, y: 760 }
-          - { item: corpse, x: 750, y: 760 }
-        b1:
-          - { item: common_chest, x: 1050, y: 290 }
-          - { item: corpse, x: 1200, y: 350 }
-          - { item: sacred_seal, x: 1320, y: 720 }
-    - name: 炎(火の僧兵)
-      floors:
-        2f:
-          - { item: corpse, x: 860, y: 500 }
-          - { item: common_chest, x: 820, y: 1000 }
-        1f:
-          - { item: rare_chest, x: 700, y: 760 }
-          - { item: common_chest, x: 1520, y: 760 }
-          - { item: corpse, x: 1270, y: 1000 }
-        b1:
-          - { item: corpse, x: 1050, y: 290 }
-          - { item: corpse, x: 1200, y: 350 }
-          - { item: sacred_seal, x: 1320, y: 720 }
+patterns:
+  - name: 無(霊廟騎士)
+    type: a
+    floors:
+      2f:
+        - { item: common_chest, x: 850, y: 500 }
+        - { item: common_chest, x: 760, y: 1020 }
+      1f:
+        - { item: rare_chest, x: 700, y: 760 }
+        - { item: corpse, x: 750, y: 760 }
+      b1:
+        - { item: common_chest, x: 1050, y: 290 }
+        - { item: corpse, x: 1200, y: 350 }
+        - { item: sacred_seal, x: 1320, y: 720 }
+
+  - name: 炎(火の僧兵)
+    type: a
+    floors:
+      2f:
+        - { item: corpse, x: 800, y: 500 }
+        - { item: common_chest, x: 860, y: 980 }
+      1f:
+        - { item: rare_chest, x: 700, y: 760 }
+        - { item: common_chest, x: 1500, y: 720 }
+        - { item: corpse, x: 1270, y: 1000 }
+      b1:
+        - { item: corpse, x: 1050, y: 290 }
+        - { item: corpse, x: 1200, y: 350 }
+        - { item: sacred_seal, x: 1320, y: 720 }
+  - name: 無(ガーディアン・ゴーレム)
+    type: b
+    floors:
+      2f: []
+      1f: []

@@ -1,6 +1,8 @@
 import greatChurchTypeADark1f from "../assets/maps/great-church/great_church_type_a_dark_1f.webp";
 import greatChurchTypeADark2f from "../assets/maps/great-church/great_church_type_a_dark_2f.webp";
 import greatChurchTypeADarkB1 from "../assets/maps/great-church/great_church_type_a_dark_b1.webp";
+import greatChurchTypeBDark1f from "../assets/maps/great-church/great_church_type_b_dark_1f.webp";
+import greatChurchTypeBDark2f from "../assets/maps/great-church/great_church_type_b_dark_2f.webp";
 import { defineMapType } from "../lib/nightreign/map";
 import type { MapLocation } from "../types/nightreign-map";
 
@@ -20,6 +22,14 @@ export const nightreignMaps: readonly MapLocation[] = [
           { id: "2f", label: "2F", images: { dark: greatChurchTypeADark2f } },
           { id: "1f", label: "1F", images: { dark: greatChurchTypeADark1f } },
           { id: "b1", label: "B1", images: { dark: greatChurchTypeADarkB1 } },
+        ],
+      }),
+      defineMapType({
+        id: "b",
+        defaultFloor: "1f",
+        floors: [
+          { id: "2f", label: "2F", images: { dark: greatChurchTypeBDark2f } },
+          { id: "1f", label: "1F", images: { dark: greatChurchTypeBDark1f } },
         ],
       }),
     ],

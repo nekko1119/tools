@@ -1,0 +1,122 @@
+---
+import type { MapLocation } from "../types/nightreign-map";
+import type { MapItemPattern, MapItemType } from "../types/nightreign-map-item";
+import MapFloorSwitch from "./MapFloorSwitch.astro";
+
+interface Props {
+  location: MapLocation;
+  /** 画像の alt の先頭に付ける名前。例: "大教会" */
+  mapName: string;
+  /** 拠点の全パターン。表示順に並んでいる */
+  patterns: readonly MapItemPattern[];
+  itemTypes: readonly MapItemType[];
+}
+
+const { location, mapName, patterns, itemTypes } = Astro.props;
+
+const viewId = `map-${location.slug}`;
+
+// パターンが1つしかないときは選ぶ余地がないのでセレクタを出さない
+const hasPatternChoice = patterns.length > 1;
+
+// 使われているタイプだけを描く。パターンが指さないタイプは表示できないため
+const usedTypes = location.types.filter((type) =>
+  patterns.some((pattern) => pattern.mapTypeId === type.id),
+);
+
+const initialPattern = patterns[0];
+---
+
+<div class="map-view" id={viewId}>
+  {
+    hasPatternChoice && (
+      <div
+        class="pattern-switch"
+        role="radiogroup"
+        aria-label="アイテムのパターン"
+      >
+        <span class="pattern-switch__title">パターン</span>
+        {patterns.map((pattern, index) => {
+          const inputId = `${viewId}-pattern-${index}`;
+          return (
+            <>
+              <input
+                type="radio"
+                name={`${viewId}-pattern`}
+                id={inputId}
+                class="pattern-switch__input"
+                data-pattern-input={index}
+                data-map-type={pattern.mapTypeId}
+                data-view={viewId}
+                checked={index === 0}
+              />
+              <label
+                for={inputId}
+                class="pattern-switch__label btn btn-sm btn-outline"
+              >
+                {pattern.name}
+              </label>
+            </>
+          );
+        })}
+      </div>
+    )
+  }
+
+  {
+    usedTypes.map((type) => (
+      <div
+        class="map-view__type"
+        data-map-type-pane={type.id}
+        hidden={type.id !== initialPattern?.mapTypeId}
+      >
+        <MapFloorSwitch
+          switchId={`${viewId}-floor-${type.id}`}
+          type={type}
+          mapName={mapName}
+          patterns={patterns}
+          itemTypes={itemTypes}
+        />
+      </div>
+    ))
+  }
+</div>
+
+<script src="../scripts/nightreign/map-zoom.ts"></script>
+<script src="../scripts/nightreign/map-pattern.ts"></script>
+
+<style>
+  .pattern-switch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .pattern-switch__title {
+    font-size: 0.875rem;
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  }
+
+  /* 見た目はラベルが担うため radio は隠すが、キーボード操作と読み上げには残す */
+  .pattern-switch__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .pattern-switch__input:checked + .pattern-switch__label {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  .pattern-switch__input:focus-visible + .pattern-switch__label {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+</style>

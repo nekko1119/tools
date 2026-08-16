@@ -22,6 +22,11 @@ const location: MapLocation = {
         { id: "b1", label: "B1", images: { dark: image } },
       ],
     },
+    {
+      id: "b",
+      defaultFloor: "1f",
+      floors: [{ id: "1f", label: "1F", images: { dark: image } }],
+    },
   ],
 };
 
@@ -32,35 +37,37 @@ function parse(source: unknown) {
 }
 
 describe("parseMapItemPlacement", () => {
-  it("タイプごとの配置パターンを読み解く", () => {
+  it("パターンを並び順のまま読み解く", () => {
     const placement = parse({
-      types: {
-        a: [
-          {
-            name: "配置1",
-            floors: {
-              "1f": [{ item: "common_chest", x: 994, y: 513 }],
-              b1: [{ item: "corpse", x: 100, y: 200 }],
-            },
+      patterns: [
+        {
+          name: "パターン1",
+          type: "a",
+          floors: {
+            "1f": [{ item: "common_chest", x: 994, y: 513 }],
+            b1: [{ item: "corpse", x: 100, y: 200 }],
           },
-          {
-            name: "配置2",
-            floors: { "1f": [{ item: "rare_chest", x: 1, y: 2 }] },
-          },
-        ],
-      },
+        },
+        {
+          name: "パターン2",
+          type: "b",
+          floors: { "1f": [{ item: "rare_chest", x: 1, y: 2 }] },
+        },
+      ],
     });
 
-    expect(placement.patternsByTypeId.a).toEqual([
+    expect(placement.patterns).toEqual([
       {
-        name: "配置1",
+        name: "パターン1",
+        mapTypeId: "a",
         itemsByFloorId: {
           "1f": [{ typeId: "common_chest", x: 994, y: 513 }],
           b1: [{ typeId: "corpse", x: 100, y: 200 }],
         },
       },
       {
-        name: "配置2",
+        name: "パターン2",
+        mapTypeId: "b",
         itemsByFloorId: { "1f": [{ typeId: "rare_chest", x: 1, y: 2 }] },
       },
     ]);
@@ -68,55 +75,78 @@ describe("parseMapItemPlacement", () => {
 
   it("アイテムが無い階層は省略できる", () => {
     const placement = parse({
-      types: { a: [{ name: "配置1", floors: { "1f": [] } }] },
+      patterns: [{ name: "パターン1", type: "a", floors: { "1f": [] } }],
     });
 
-    expect(placement.patternsByTypeId.a?.[0]?.itemsByFloorId).toEqual({
-      "1f": [],
-    });
+    expect(placement.patterns[0]?.itemsByFloorId).toEqual({ "1f": [] });
   });
 
   it("中身が空でもエラーにしない", () => {
-    expect(parse({})).toEqual({ patternsByTypeId: {} });
+    expect(parse({})).toEqual({ patterns: [] });
   });
 
   it("地図に無いタイプを指したらエラーにする", () => {
-    expect(() => parse({ types: { z: [] } })).toThrow(/タイプ「z」/);
+    expect(() =>
+      parse({ patterns: [{ name: "パターン1", type: "z", floors: {} }] }),
+    ).toThrow(/type「z」/);
   });
 
-  it("地図に無い階層を指したらエラーにする", () => {
+  it("type が無ければエラーにする", () => {
     expect(() =>
-      parse({ types: { a: [{ name: "配置1", floors: { "3f": [] } }] } }),
-    ).toThrow(/階層「3f」/);
+      parse({ patterns: [{ name: "パターン1", floors: {} }] }),
+    ).toThrow(/type/);
+  });
+
+  it("そのタイプに無い階層を指したらエラーにする", () => {
+    // b1 はタイプaにしかないので、タイプbのパターンでは使えない
+    expect(() =>
+      parse({
+        patterns: [{ name: "パターン1", type: "b", floors: { b1: [] } }],
+      }),
+    ).toThrow(/階層「b1」.*「b」/s);
   });
 
   it("定義されていないアイテム種別を指したらエラーにする", () => {
     expect(() =>
       parse({
-        types: {
-          a: [
-            { name: "配置1", floors: { "1f": [{ item: "gold", x: 1, y: 2 }] } },
-          ],
-        },
+        patterns: [
+          {
+            name: "パターン1",
+            type: "a",
+            floors: { "1f": [{ item: "gold", x: 1, y: 2 }] },
+          },
+        ],
       }),
     ).toThrow(/gold/);
   });
 
-  it("配置に名前が無ければエラーにする", () => {
-    expect(() => parse({ types: { a: [{ floors: {} }] } })).toThrow(/name/);
+  it("パターンに名前が無ければエラーにする", () => {
+    expect(() => parse({ patterns: [{ type: "a", floors: {} }] })).toThrow(
+      /name/,
+    );
+  });
+
+  it("パターン名が重複していたらエラーにする", () => {
+    expect(() =>
+      parse({
+        patterns: [
+          { name: "同じ名前", type: "a", floors: {} },
+          { name: "同じ名前", type: "b", floors: {} },
+        ],
+      }),
+    ).toThrow(/重複/);
   });
 
   it("座標が地図の範囲を超えていたらエラーにする", () => {
     expect(() =>
       parse({
-        types: {
-          a: [
-            {
-              name: "配置1",
-              floors: { "1f": [{ item: "corpse", x: 9999, y: 10 }] },
-            },
-          ],
-        },
+        patterns: [
+          {
+            name: "パターン1",
+            type: "a",
+            floors: { "1f": [{ item: "corpse", x: 9999, y: 10 }] },
+          },
+        ],
       }),
     ).toThrow(/範囲/);
   });
@@ -124,14 +154,13 @@ describe("parseMapItemPlacement", () => {
   it("座標が数値でなければエラーにする", () => {
     expect(() =>
       parse({
-        types: {
-          a: [
-            {
-              name: "配置1",
-              floors: { "1f": [{ item: "corpse", x: "100", y: 10 }] },
-            },
-          ],
-        },
+        patterns: [
+          {
+            name: "パターン1",
+            type: "a",
+            floors: { "1f": [{ item: "corpse", x: "100", y: 10 }] },
+          },
+        ],
       }),
     ).toThrow(/数値/);
   });
@@ -139,17 +168,16 @@ describe("parseMapItemPlacement", () => {
   it("エラーには場所が分かる情報を含める", () => {
     expect(() =>
       parse({
-        types: {
-          a: [
-            {
-              name: "配置1",
-              floors: {
-                "1f": [{ item: "corpse", x: 1, y: 1 }, { item: "gold" }],
-              },
+        patterns: [
+          {
+            name: "パターン1",
+            type: "a",
+            floors: {
+              "1f": [{ item: "corpse", x: 1, y: 1 }, { item: "gold" }],
             },
-          ],
-        },
+          },
+        ],
       }),
-    ).toThrow(/テスト\.yaml.*「a」.*1件目の配置.*「1f」.*2件目/s);
+    ).toThrow(/テスト\.yaml.*1件目のパターン.*「1f」.*2件目/s);
   });
 });

@@ -35,9 +35,9 @@ function isZoomControl(target: EventTarget | null): boolean {
 }
 
 /**
- * 1つのタイプの地図に拡大縮小の操作を組み込む。
- * 階層ごとの画像は共通の変形レイヤーに乗るため、
- * 倍率と表示位置は階層を切り替えても保たれる。
+ * 拠点の地図に拡大縮小の操作を組み込む。
+ * 倍率と表示位置は拠点単位で1つだけ持ち、全タイプの変形レイヤーに同じ値をかける。
+ * そのため階層を切り替えてもパターンでタイプが変わっても、倍率と位置が保たれる。
  */
 function setupMapZoom(root: HTMLElement): void {
   const panels = Array.from(
@@ -52,7 +52,7 @@ function setupMapZoom(root: HTMLElement): void {
   const activePointers = new Map<number, Point>();
   let previousPinchDistance = 0;
 
-  /** 表示中の階層の枠。全階層が同じ大きさなので代表として使う */
+  /** 表示中の階層の枠。隠れている階層やタイプは offsetParent が null になる */
   function visiblePanel(): HTMLElement {
     return panels.find((panel) => panel.offsetParent !== null) ?? panels[0]!;
   }
@@ -239,6 +239,6 @@ function setupMapZoom(root: HTMLElement): void {
   applyState();
 }
 
-for (const root of document.querySelectorAll<HTMLElement>(".floor-switch")) {
+for (const root of document.querySelectorAll<HTMLElement>(".map-view")) {
   setupMapZoom(root);
 }

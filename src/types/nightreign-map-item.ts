@@ -25,13 +25,20 @@ export type MapItem = {
   y: number;
 };
 
-/** 1つの配置パターン。階層idからその階層に置くアイテムを引く */
+/**
+ * アイテムの配置パターン。
+ * パターンはタイプをまたいで重複しないため、パターンを選べば地図のタイプも決まる。
+ */
 export type MapItemPattern = {
+  /** セレクタに出す名前。拠点内で一意 */
   name: string;
+  /** このパターンで表示する地図のタイプid */
+  mapTypeId: string;
+  /** 階層idからその階層に置くアイテムを引く */
   itemsByFloorId: Record<string, readonly MapItem[]>;
 };
 
-/** 拠点1つ分のアイテム配置。地図のタイプidから配置パターンの一覧を引く */
+/** 拠点1つ分のアイテム配置。表示順に並べたパターンの一覧 */
 export type MapItemPlacement = {
-  patternsByTypeId: Record<string, readonly MapItemPattern[]>;
+  patterns: readonly MapItemPattern[];
 };

@@ -28,9 +28,6 @@ const aspectRatio = `${mapWidth} / ${mapHeight}`;
 // 高さの上限から幅を割り出すために、縦横比を数値でも渡す
 const aspectValue = mapWidth / mapHeight;
 
-// 配置パターンが1つしかないときは選ぶ余地がないのでセレクタを出さない
-const hasPatternChoice = patterns.length > 1;
-
 function findItemType(typeId: string): MapItemType {
   const itemType = itemTypes.find((candidate) => candidate.id === typeId);
   if (itemType === undefined) {
@@ -40,40 +37,11 @@ function findItemType(typeId: string): MapItemType {
 }
 ---
 
-{
-  hasPatternChoice && (
-    <div class="pattern-switch" role="radiogroup" aria-label="アイテムの配置">
-      <span class="pattern-switch__title">配置</span>
-      {patterns.map((pattern, index) => {
-        const inputId = `${switchId}-pattern-${index}`;
-        return (
-          <>
-            <input
-              type="radio"
-              name={`${switchId}-pattern`}
-              id={inputId}
-              class="pattern-switch__input"
-              data-pattern-input={index}
-              data-target={switchId}
-              checked={index === 0}
-            />
-            <label
-              for={inputId}
-              class="pattern-switch__label btn btn-sm btn-outline"
-            >
-              {pattern.name}
-            </label>
-          </>
-        );
-      })}
-    </div>
-  )
-}
-
 <div
   class="floor-switch"
   style={`--floor-count: ${type.floors.length}; --map-aspect: ${aspectRatio}; --map-aspect-value: ${aspectValue};`}
   id={switchId}
+  data-default-floor={type.defaultFloor}
   role="group"
   aria-label={`${mapName} の階層`}
 >
@@ -87,6 +55,7 @@ function findItemType(typeId: string): MapItemType {
             name={switchId}
             id={inputId}
             class="floor-switch__input"
+            data-floor-id={floor.id}
             checked={floor.id === type.defaultFloor}
           />
           <label for={inputId} class="floor-switch__label btn btn-outline">
@@ -149,44 +118,7 @@ function findItemType(typeId: string): MapItemType {
   }
 </div>
 
-<script src="../scripts/nightreign/map-zoom.ts"></script>
-<script src="../scripts/nightreign/map-pattern.ts"></script>
-
 <style>
-  .pattern-switch {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .pattern-switch__title {
-    font-size: 0.875rem;
-    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
-  }
-
-  /* 見た目はラベルが担うため radio は隠すが、キーボード操作と読み上げには残す */
-  .pattern-switch__input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .pattern-switch__input:checked + .pattern-switch__label {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-primary-content);
-  }
-
-  .pattern-switch__input:focus-visible + .pattern-switch__label {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
-
   .floor-switch {
     display: grid;
     gap: 0.75rem;
@@ -266,11 +198,12 @@ function findItemType(typeId: string): MapItemType {
     -webkit-user-drag: none;
   }
 
-  .floor-switch.is-zoomed .floor-switch__canvas {
+  /* 拡大の状態は拠点単位で持つため、親の .map-view に付く */
+  :global(.map-view.is-zoomed) .floor-switch__canvas {
     cursor: grab;
   }
 
-  .floor-switch.is-zoomed.is-grabbing .floor-switch__canvas {
+  :global(.map-view.is-zoomed.is-grabbing) .floor-switch__canvas {
     cursor: grabbing;
   }
 
