@@ -1,0 +1,121 @@
+---
+import { Image } from "astro:assets";
+import type { MapType } from "../types/nightreign-map";
+
+interface Props {
+  /** radio のグループ名とidを一意にするための識別子 */
+  switchId: string;
+  type: MapType;
+  /** 画像の alt の先頭に付ける名前。例: "大教会" */
+  mapName: string;
+}
+
+const { switchId, type, mapName } = Astro.props;
+---
+
+<div
+  class="floor-switch"
+  style={`--floor-count: ${type.floors.length}`}
+  role="group"
+  aria-label={`${mapName} の階層`}
+>
+  {
+    type.floors.map((floor) => {
+      const inputId = `${switchId}-${floor.id}`;
+      return (
+        <>
+          <input
+            type="radio"
+            name={switchId}
+            id={inputId}
+            class="floor-switch__input"
+            checked={floor.id === type.defaultFloor}
+          />
+          <label for={inputId} class="floor-switch__label btn btn-outline">
+            {floor.label}
+          </label>
+          <div class="floor-switch__panel">
+            <Image
+              src={floor.images.dark}
+              alt={`${mapName} ${floor.label} の地図`}
+              widths={[640, 1024, 1600]}
+              sizes="(min-width: 40rem) 60rem, 100vw"
+              loading="eager"
+              class="w-full h-auto"
+            />
+          </div>
+        </>
+      );
+    })
+  }
+</div>
+
+<style>
+  .floor-switch {
+    display: grid;
+    gap: 0.75rem;
+    /* スマホでは階層ボタンを地図の上に横並びで置き、幅を均等に分ける */
+    grid-template-columns: repeat(var(--floor-count), minmax(0, 1fr));
+  }
+
+  /* 見た目はラベルが担うため radio は隠すが、キーボード操作と読み上げには残す */
+  .floor-switch__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .floor-switch__label {
+    order: 1;
+  }
+
+  .floor-switch__input:checked + .floor-switch__label {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  .floor-switch__input:focus-visible + .floor-switch__label {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .floor-switch__panel {
+    display: none;
+    order: 2;
+    grid-column: 1 / -1;
+    /* 将来ピンを重ねられるようにする */
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-box);
+    /* TODO: ライトテーマ用の地図画像が用意できたら削除する。
+       それまではライトテーマで黒背景の画像が浮かないよう暗い背景を敷く */
+    background-color: var(--color-neutral);
+  }
+
+  /* 選択された階層の地図だけを表示する */
+  .floor-switch__input:checked + .floor-switch__label + .floor-switch__panel {
+    display: block;
+  }
+
+  @media (width >= 40rem) {
+    .floor-switch {
+      grid-template-columns: auto minmax(0, 1fr);
+      /* 末尾の 1fr が余白を吸収し、階層ボタンが縦に間延びしないようにする */
+      grid-template-rows: repeat(var(--floor-count), auto) 1fr;
+    }
+
+    .floor-switch__label {
+      grid-column: 1;
+      min-width: 5rem;
+    }
+
+    .floor-switch__panel {
+      grid-column: 2;
+      grid-row: 1 / -1;
+    }
+  }
+</style>

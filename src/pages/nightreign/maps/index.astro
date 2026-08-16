@@ -1,0 +1,45 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { nightreignMaps } from "../../../data/nightreign-maps";
+import {
+  loadTranslations,
+  translate,
+} from "../../../lib/nightreign/translations";
+
+const base = import.meta.env.BASE_URL;
+const translations = loadTranslations();
+
+const locations = nightreignMaps.map((location) => ({
+  href: `${base}nightreign/maps/${location.slug}/`,
+  name: translate(translations, location.englishName),
+}));
+---
+
+<Layout
+  title="拠点地図 - Nightreign"
+  description="ELDEN RING NIGHTREIGN の攻略拠点の地図。"
+  breadcrumbs={[
+    { label: "ツール類", href: base },
+    { label: "Nightreign", href: `${base}nightreign/` },
+    { label: "拠点地図" },
+  ]}
+>
+  <main class="container mx-auto p-4 max-w-2xl min-w-80">
+    <h1 class="text-2xl font-bold mb-6">拠点地図</h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {
+        locations.map((location) => (
+          <a
+            href={location.href}
+            class="card bg-base-200 hover:bg-base-300 transition-colors"
+          >
+            <div class="card-body">
+              <h2 class="card-title">{location.name}</h2>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </main>
+</Layout>
