@@ -210,7 +210,7 @@ types:
 | `common_chest` | `chest.svg` を黄みのオレンジで塗る |
 | `rare_chest`   | `chest.svg` を灰色で塗る           |
 | `corpse`       | `corpse.svg`                       |
-| `sacred_seal`  | `sacred_seal.svg`                  |
+| `sacred_seal`  | `sacred_seal.svg` を灰色の線で描く |
 
 宝箱は2種とも同じ `src/assets/map-items/chest.svg` を使い、内側の塗り色だけで区別する。
 形が揃っていれば地図上で宝箱だと分かり、色でレア度を表せるため。
