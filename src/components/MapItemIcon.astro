@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets";
+import ChestIcon from "../assets/map-items/chest.svg";
 import type { MapItem, MapItemType } from "../types/nightreign-map-item";
 
 interface Props {
@@ -15,27 +16,52 @@ const { item, itemType, mapWidth, mapHeight } = Astro.props;
 /** アイコンの短辺の表示サイズ */
 const ICON_SHORT_SIDE = 32;
 
-// 元画像の比率を保ったまま、短辺が 32px になるよう縮める
-const scale =
-  ICON_SHORT_SIDE / Math.min(itemType.icon.width, itemType.icon.height);
-const width = Math.round(itemType.icon.width * scale);
-const height = Math.round(itemType.icon.height * scale);
+/** 元の比率を保ったまま、短辺が 32px になる大きさを求める */
+function fitToShortSide(
+  width: number,
+  height: number,
+): { width: number; height: number } {
+  const scale = ICON_SHORT_SIDE / Math.min(width, height);
+  return {
+    width: Math.round(width * scale),
+    height: Math.round(height * scale),
+  };
+}
 
 // 地図の拡大率と表示位置に追従させるため、座標は画像に対する割合で渡す
-const ratioStyle = `--item-x: ${item.x / mapWidth}; --item-y: ${item.y / mapHeight};`;
+const positionStyle = `--item-x: ${item.x / mapWidth}; --item-y: ${item.y / mapHeight};`;
+
+const { appearance } = itemType;
+const size =
+  appearance.kind === "chest"
+    ? fitToShortSide(ChestIcon.width, ChestIcon.height)
+    : fitToShortSide(appearance.image.width, appearance.image.height);
 ---
 
-<Image
-  class="map-item-icon"
-  style={ratioStyle}
-  src={itemType.icon}
-  alt={itemType.label}
-  width={width}
-  height={height}
-  densities={[1, 2]}
-  loading="eager"
-  draggable={false}
-/>
+{
+  appearance.kind === "chest" ? (
+    <ChestIcon
+      class="map-item-icon map-item-icon--chest"
+      style={`${positionStyle} --chest-fill: ${appearance.fillColor};`}
+      width={size.width}
+      height={size.height}
+      role="img"
+      aria-label={itemType.label}
+    />
+  ) : (
+    <Image
+      class="map-item-icon map-item-icon--photo"
+      style={positionStyle}
+      src={appearance.image}
+      alt={itemType.label}
+      width={size.width}
+      height={size.height}
+      densities={[1, 2]}
+      loading="eager"
+      draggable={false}
+    />
+  )
+}
 
 <style>
   .map-item-icon {
@@ -45,12 +71,21 @@ const ratioStyle = `--item-x: ${item.x / mapWidth}; --item-y: ${item.y / mapHeig
     top: calc(var(--pan-y, 0px) + var(--item-y) * 100% * var(--zoom, 1));
     /* 座標がアイコンの中心を指すようにする */
     translate: -50% -50%;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  /* 線画は地図の線に紛れないよう、地の色で縁取って浮かせる */
+  .map-item-icon--chest {
+    color: var(--color-base-100);
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.8));
+  }
+
+  /* 写真は輪郭が地図に溶けるため枠で囲む */
+  .map-item-icon--photo {
     border-radius: var(--radius-field);
-    /* 暗い地図の上で沈まないよう縁取りを付ける */
     outline: 2px solid var(--color-base-100);
     outline-offset: -1px;
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
-    user-select: none;
-    -webkit-user-drag: none;
   }
 </style>

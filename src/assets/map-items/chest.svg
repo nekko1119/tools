@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  宝箱のアイコン。
+  線の色は CSS の color、内側の塗りつぶしは CSS の --chest-fill で指定する。
+  --chest-fill を指定しない場合は塗りつぶさない。
+  例: .icon { color: #fff; --chest-fill: #c9a227; }
+
+  CSS を効かせるには SVG をインラインで埋め込むこと(img 要素では効かない)。
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="126"
+  height="86"
+  viewBox="-4 -5 126 86"
+>
+  <g fill="none" stroke="currentColor" stroke-miterlimit="10">
+    <!-- 宝箱の外形。ここだけ内側を塗りつぶす -->
+    <path
+      fill="var(--chest-fill, none)"
+      d="M -2.5 36.5 Q -2.5 -3.5 17.5 -3.5 L 97.5 -3.5 Q 117.5 -3.5 117.5 36.5 L 117.5 76.5 L -2.5 76.5 Z"
+    />
+    <!-- 蓋と本体の境目 -->
+    <path d="M -2.5 36.5 L 117.5 36.5" />
+    <!-- 本体の仕切り -->
+    <path d="M 77.5 36.5 L 77.5 76.5" />
+    <!-- 蓋の仕切り -->
+    <path d="M 77.5 36.5 Q 77.5 -3.5 97.5 -3.5" />
+    <!-- 鍵。線と同じ色で塗る -->
+    <path fill="currentColor" d="M 27.5 36.5 h 10 v 10 h -10 Z" />
+  </g>
+</svg>

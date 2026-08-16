@@ -1,12 +1,20 @@
 import type { ImageMetadata } from "astro";
 
-/** アイテム種別の定義。アイコン画像と表示名を持つ */
+/**
+ * アイコンの見せ方。
+ * 宝箱は共通の線画を塗り分け、それ以外は写真をそのまま出す。
+ */
+export type MapItemAppearance =
+  | { kind: "photo"; image: ImageMetadata }
+  | { kind: "chest"; fillColor: string };
+
+/** アイテム種別の定義 */
 export type MapItemType = {
   /** 配置ファイルの item に書く識別子 */
   id: string;
   /** 画像の alt などに使う表示名 */
   label: string;
-  icon: ImageMetadata;
+  appearance: MapItemAppearance;
 };
 
 /** 地図に置く1つのアイテム。座標は地図画像の原寸を基準としたピクセル値 */
