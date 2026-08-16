@@ -11,8 +11,3 @@ export function defineMapType<const TFloors extends readonly MapFloor[]>(type: {
 }): MapType {
   return type;
 }
-
-/** タイプの表示名。タイプが2つ以上ある拠点でのみ見出しとして使う */
-export function formatMapTypeLabel(type: MapType): string {
-  return `タイプ${type.id.toUpperCase()}`;
-}
