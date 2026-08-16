@@ -75,16 +75,19 @@ const size =
     -webkit-user-drag: none;
   }
 
-  /* 線画は地図の線に紛れないよう、地の色で縁取って浮かせる */
+  /* 地図の表示領域は常に暗いため、縁取りの色はテーマに追従させない。
+     テーマの色を使うとライトテーマで灰色のレア宝箱と縁取りが同化する。
+     TODO: ライトテーマ用の地図画像を入れるときに、地図の明るさに合わせて見直す */
   .map-item-icon--chest {
-    color: var(--color-base-100);
+    /* 明るい塗りを暗い線で締める */
+    color: #171a1f;
     filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.8));
   }
 
-  /* 写真は輪郭が地図に溶けるため枠で囲む */
+  /* 写真は暗く輪郭が地図に溶けるため、明るい枠で囲む */
   .map-item-icon--photo {
     border-radius: var(--radius-field);
-    outline: 2px solid var(--color-base-100);
+    outline: 2px solid #e7e9ee;
     outline-offset: -1px;
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
   }
