@@ -1,12 +1,11 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { parse as parseYaml } from "yaml";
 import type { MapLocation } from "../../types/nightreign-map";
 import type {
   MapItem,
   MapItemPattern,
   MapItemPlacement,
+  MapItemType,
 } from "../../types/nightreign-map-item";
+import { readOptionalDataYaml } from "./data-file";
 
 /** プロジェクトルートからの配置ファイル置き場の相対パス */
 const PLACEMENT_DIR = "data/map-items";
@@ -46,7 +45,7 @@ function parseCoordinate(
 
 function parseItem(
   source: unknown,
-  itemTypeIds: readonly string[],
+  itemTypes: readonly MapItemType[],
   width: number,
   height: number,
   context: string,
@@ -56,13 +55,14 @@ function parseItem(
   if (typeof typeId !== "string") {
     throw new Error(`${context}に item を書いてください`);
   }
-  if (!itemTypeIds.includes(typeId)) {
+  const itemType = itemTypes.find((candidate) => candidate.id === typeId);
+  if (itemType === undefined) {
     throw new Error(
-      `${context}の item「${typeId}」は定義されていません。使えるのは ${itemTypeIds.join(" / ")} です`,
+      `${context}の item「${typeId}」は定義されていません。使えるのは ${itemTypes.map((t) => t.id).join(" / ")} です`,
     );
   }
   return {
-    typeId,
+    itemType,
     x: parseCoordinate(record.x, "x", width, context),
     y: parseCoordinate(record.y, "y", height, context),
   };
@@ -71,7 +71,7 @@ function parseItem(
 function parsePattern(
   source: unknown,
   location: MapLocation,
-  itemTypeIds: readonly string[],
+  itemTypes: readonly MapItemType[],
   context: string,
 ): MapItemPattern {
   const record = asRecord(source, context);
@@ -110,7 +110,7 @@ function parsePattern(
     ).map((rawItem, index) =>
       parseItem(
         rawItem,
-        itemTypeIds,
+        itemTypes,
         width,
         height,
         `${context}の階層「${floorId}」の${index + 1}件目`,
@@ -128,7 +128,7 @@ function parsePattern(
 export function parseMapItemPlacement(
   source: unknown,
   location: MapLocation,
-  itemTypeIds: readonly string[],
+  itemTypes: readonly MapItemType[],
   sourceName: string,
 ): MapItemPlacement {
   const root = asRecord(source, `${sourceName} の内容`);
@@ -139,7 +139,7 @@ export function parseMapItemPlacement(
     parsePattern(
       rawPattern,
       location,
-      itemTypeIds,
+      itemTypes,
       `${sourceName} の${index + 1}件目のパターン`,
     ),
   );
@@ -164,30 +164,12 @@ export function parseMapItemPlacement(
  */
 export function loadMapItemPlacement(
   location: MapLocation,
-  itemTypeIds: readonly string[],
+  itemTypes: readonly MapItemType[],
 ): MapItemPlacement {
   const relativePath = `${PLACEMENT_DIR}/${location.slug}.yaml`;
-  const filePath = resolve(process.cwd(), relativePath);
-  if (!existsSync(filePath)) {
-    return EMPTY_PLACEMENT;
-  }
-
-  let yamlText: string;
-  try {
-    yamlText = readFileSync(filePath, "utf-8");
-  } catch (cause) {
-    throw new Error(`配置ファイルを読み込めません: ${relativePath}`, { cause });
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = parseYaml(yamlText);
-  } catch (cause) {
-    throw new Error(`配置ファイルの書式が不正です: ${relativePath}`, { cause });
-  }
+  const parsed = readOptionalDataYaml(relativePath);
   if (parsed === null || parsed === undefined) {
     return EMPTY_PLACEMENT;
   }
-
-  return parseMapItemPlacement(parsed, location, itemTypeIds, relativePath);
+  return parseMapItemPlacement(parsed, location, itemTypes, relativePath);
 }

@@ -1,7 +1,7 @@
 ---
 import { getImage, Image } from "astro:assets";
 import type { MapType } from "../types/nightreign-map";
-import type { MapItemPattern, MapItemType } from "../types/nightreign-map-item";
+import type { MapItemPattern } from "../types/nightreign-map-item";
 import MapItemIcon from "./MapItemIcon.astro";
 
 interface Props {
@@ -10,23 +10,21 @@ interface Props {
   type: MapType;
   /** 画像の alt の先頭に付ける名前。例: "大教会" */
   mapName: string;
-  /** このタイプのアイテム配置パターン。未定義の拠点では空になる */
+  /** このタイプに属するアイテム配置パターン。未定義の拠点では空になる */
   patterns: readonly MapItemPattern[];
-  itemTypes: readonly MapItemType[];
+  /** 最初に表示するパターン名。他のタイプのものなら、この地図は隠れた状態で始まる */
+  initialPatternName: string | undefined;
 }
 
-const { switchId, type, mapName, patterns, itemTypes } = Astro.props;
+const { switchId, type, mapName, patterns, initialPatternName } = Astro.props;
 
 const firstFloor = type.floors[0];
 if (firstFloor === undefined) {
   throw new Error(`地図のタイプ「${type.id}」に階層が定義されていません`);
 }
 
-// 拡大しても枠の大きさが変わらないよう、表示領域は画像の縦横比で固定する
+// 拡大しても枠の大きさが変わらないよう、表示領域は画像の寸法から縦横比を決める
 const { width: mapWidth, height: mapHeight } = firstFloor.images.dark;
-const aspectRatio = `${mapWidth} / ${mapHeight}`;
-// 高さの上限から幅を割り出すために、縦横比を数値でも渡す
-const aspectValue = mapWidth / mapHeight;
 
 /** 地図画像の表示幅の候補。ダーク用とライト用で揃える */
 const IMAGE_WIDTHS = [640, 1024, 1600, 2338];
@@ -44,19 +42,11 @@ const lightSources = await Promise.all(
         }),
   ),
 );
-
-function findItemType(typeId: string): MapItemType {
-  const itemType = itemTypes.find((candidate) => candidate.id === typeId);
-  if (itemType === undefined) {
-    throw new Error(`アイテム種別「${typeId}」が定義されていません`);
-  }
-  return itemType;
-}
 ---
 
 <div
   class="floor-switch"
-  style={`--floor-count: ${type.floors.length}; --map-aspect: ${aspectRatio}; --map-aspect-value: ${aspectValue};`}
+  style={`--floor-count: ${type.floors.length}; --map-w: ${mapWidth}; --map-h: ${mapHeight};`}
   id={switchId}
   data-default-floor={type.defaultFloor}
   role="group"
@@ -101,11 +91,14 @@ function findItemType(typeId: string): MapItemType {
                 />
               </picture>
             </div>
-            {patterns.map((pattern, index) => (
-              <div data-pattern-index={index} hidden={index !== 0}>
+            {patterns.map((pattern) => (
+              <div
+                data-pattern-group={pattern.name}
+                hidden={pattern.name !== initialPatternName}
+              >
                 {(pattern.itemsByFloorId[floor.id] ?? []).map((item) => (
                   <MapItemIcon
-                    itemType={findItemType(item.typeId)}
+                    itemType={item.itemType}
                     placement={{
                       item,
                       mapWidth: floor.images.dark.width,
@@ -189,15 +182,15 @@ function findItemType(typeId: string): MapItemType {
     position: relative;
     /* 拡大した地図が枠からはみ出さないようにする */
     overflow: hidden;
-    aspect-ratio: var(--map-aspect);
+    aspect-ratio: var(--map-w) / var(--map-h);
     /* 縦に低い画面で地図全体を見るのに縦スクロールが要らないよう高さを抑える。
        高さで頭打ちになったときは、縦横比を保つため幅も合わせて縮め、中央に寄せる */
     width: 100%;
     max-height: var(--map-max-height);
-    max-width: calc(var(--map-max-height) * var(--map-aspect-value));
+    max-width: calc(var(--map-max-height) * var(--map-w) / var(--map-h));
     margin-inline: auto;
     border-radius: var(--radius-box);
-    /* JavaScript が読み込まれるまではページの縦スクロールを妨げない */
+    /* 等倍のときはページの縦スクロールに任せる */
     touch-action: pan-y;
     /* 画像が読み込まれるまでの下地。画像はテーマごとに用意するので地の色に合わせる */
     background-color: var(--color-base-200);
@@ -228,6 +221,11 @@ function findItemType(typeId: string): MapItemType {
   }
 
   /* 拡大の状態は拠点単位で持つため、親の .map-view に付く */
+  :global(.map-view.is-zoomed) .floor-switch__panel {
+    /* 拡大中はタッチを地図の移動に使う */
+    touch-action: none;
+  }
+
   :global(.map-view.is-zoomed) .floor-switch__canvas {
     cursor: grab;
   }

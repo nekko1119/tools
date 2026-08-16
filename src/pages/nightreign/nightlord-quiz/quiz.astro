@@ -1,4 +1,5 @@
 ---
+import DisclaimerFooter from "../../../components/DisclaimerFooter.astro";
 import Layout from "../../../layouts/Layout.astro";
 import { loadTranslations } from "../../../lib/nightreign/translations";
 import patternsRaw from "../../../../data/nightreign_map_pattern.json";
@@ -181,11 +182,7 @@ const quizDataJson = JSON.stringify({ patternsByDlc, translations }).replace(
       </div>
     </div>
   </main>
-  <footer class="container mx-auto p-4 max-w-2xl mt-8 border-t border-base-300">
-    <p class="text-xs text-base-content/50">
-      ※ 掲載データの正確性を保証するものではありません。
-    </p>
-  </footer>
+  <DisclaimerFooter />
 </Layout>
 
 <script type="application/json" id="quiz-data" set:html={quizDataJson} />

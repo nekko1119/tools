@@ -1,0 +1,32 @@
+---
+export type LinkCard = {
+  href: string;
+  title: string;
+  /** 省略するとタイトルだけのカードになる */
+  description?: string;
+};
+
+interface Props {
+  cards: readonly LinkCard[];
+}
+
+const { cards } = Astro.props;
+---
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  {
+    cards.map((card) => (
+      <a
+        href={card.href}
+        class="card bg-base-200 hover:bg-base-300 transition-colors"
+      >
+        <div class="card-body">
+          <h2 class="card-title">{card.title}</h2>
+          {card.description !== undefined && (
+            <p class="text-sm text-base-content/70">{card.description}</p>
+          )}
+        </div>
+      </a>
+    ))
+  }
+</div>

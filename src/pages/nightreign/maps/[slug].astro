@@ -4,6 +4,7 @@ import MapItemLegend from "../../../components/MapItemLegend.astro";
 import MapView from "../../../components/MapView.astro";
 import { nightreignMapItemTypes } from "../../../data/nightreign-map-item-types";
 import { nightreignMaps } from "../../../data/nightreign-maps";
+import DisclaimerFooter from "../../../components/DisclaimerFooter.astro";
 import Layout from "../../../layouts/Layout.astro";
 import { loadMapItemPlacement } from "../../../lib/nightreign/map-items";
 import {
@@ -23,10 +24,7 @@ const base = import.meta.env.BASE_URL;
 const translations = loadTranslations();
 const locationName = translate(translations, location.englishName);
 
-const placement = loadMapItemPlacement(
-  location,
-  nightreignMapItemTypes.map((itemType) => itemType.id),
-);
+const placement = loadMapItemPlacement(location, nightreignMapItemTypes);
 
 // 地図が横長のため、ヘッダーと本文をまとめて既定より広くする
 const maxWidthClass = "max-w-7xl";
@@ -50,18 +48,8 @@ const maxWidthClass = "max-w-7xl";
       location={location}
       mapName={locationName}
       patterns={placement.patterns}
-      itemTypes={nightreignMapItemTypes}
     />
     <MapItemLegend itemTypes={nightreignMapItemTypes} />
   </main>
-  <footer
-    class:list={[
-      "container mx-auto p-4 mt-8 border-t border-base-300",
-      maxWidthClass,
-    ]}
-  >
-    <p class="text-xs text-base-content/50">
-      ※ 掲載データの正確性を保証するものではありません。
-    </p>
-  </footer>
+  <DisclaimerFooter maxWidthClass={maxWidthClass} />
 </Layout>

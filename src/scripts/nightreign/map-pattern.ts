@@ -4,35 +4,24 @@
  * 階層の選択は、切り替え先に同じ階層があれば引き継ぎ、無ければそのタイプの既定の階層に戻す。
  * 階層とパターンは選択の軸が交差するため、CSS の兄弟セレクタでは表せず JavaScript で出し分ける。
  */
-function findView(input: HTMLInputElement): HTMLElement {
-  const viewId = input.dataset.view;
-  if (viewId === undefined) {
-    throw new Error("パターンの切り替え先が指定されていません");
-  }
-  const view = document.getElementById(viewId);
-  if (view === null) {
-    throw new Error(`パターンの切り替え先「${viewId}」が見つかりません`);
-  }
-  return view;
-}
 
 /** 表示中のタイプの階層セレクタ。タイプを切り替えた後に呼ぶこと */
-function visibleFloorSwitch(view: HTMLElement): HTMLElement | undefined {
-  return Array.from(view.querySelectorAll<HTMLElement>(".floor-switch")).find(
-    (floorSwitch) => floorSwitch.offsetParent !== null,
+function visibleFloorSwitch(view: HTMLElement): HTMLElement | null {
+  return view.querySelector<HTMLElement>(
+    "[data-map-type-pane]:not([hidden]) .floor-switch",
   );
 }
 
 function selectedFloorId(view: HTMLElement): string | undefined {
-  const floorSwitch = visibleFloorSwitch(view);
-  return floorSwitch?.querySelector<HTMLInputElement>("[data-floor-id]:checked")
-    ?.dataset.floorId;
+  return visibleFloorSwitch(view)?.querySelector<HTMLInputElement>(
+    "[data-floor-id]:checked",
+  )?.dataset.floorId;
 }
 
 /** 切り替え先のタイプで、できるだけ同じ階層を選び直す */
 function restoreFloor(view: HTMLElement, floorId: string | undefined): void {
   const floorSwitch = visibleFloorSwitch(view);
-  if (floorSwitch === undefined) {
+  if (floorSwitch === null) {
     return;
   }
   const inputs = Array.from(
@@ -57,11 +46,14 @@ function restoreFloor(view: HTMLElement, floorId: string | undefined): void {
 }
 
 function setupPatternSwitch(input: HTMLInputElement): void {
-  const view = findView(input);
-  const patternIndex = input.dataset.patternInput;
+  const view = input.closest<HTMLElement>(".map-view");
+  if (view === null) {
+    throw new Error("パターンの切り替え先の .map-view が見つかりません");
+  }
+  const patternName = input.dataset.patternInput;
   const mapTypeId = input.dataset.mapType;
-  if (patternIndex === undefined || mapTypeId === undefined) {
-    throw new Error("パターンの番号またはタイプが指定されていません");
+  if (patternName === undefined || mapTypeId === undefined) {
+    throw new Error("パターンの名前またはタイプが指定されていません");
   }
 
   input.addEventListener("change", () => {
@@ -78,9 +70,9 @@ function setupPatternSwitch(input: HTMLInputElement): void {
       pane.hidden = pane.dataset.mapTypePane !== mapTypeId;
     }
     for (const group of view.querySelectorAll<HTMLElement>(
-      "[data-pattern-index]",
+      "[data-pattern-group]",
     )) {
-      group.hidden = group.dataset.patternIndex !== patternIndex;
+      group.hidden = group.dataset.patternGroup !== patternName;
     }
 
     restoreFloor(view, previousFloorId);

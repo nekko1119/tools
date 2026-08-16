@@ -1,14 +1,5 @@
 ---
-// 内側の塗りを --chest-fill で受け取る線画。
-// CSS 変数を効かせるためインラインで展開する(img 要素では効かない)
-import ChestIcon from "../assets/map-items/chest.svg";
-import CorpseIcon from "../assets/map-items/corpse.svg";
-import SacredSealIcon from "../assets/map-items/sacred_seal.svg";
-import type {
-  MapItem,
-  MapItemAppearance,
-  MapItemType,
-} from "../types/nightreign-map-item";
+import type { MapItem, MapItemType } from "../types/nightreign-map-item";
 
 interface Props {
   itemType: MapItemType;
@@ -39,21 +30,8 @@ function fitToShortSide(
   };
 }
 
-/** 見せ方に対応する線画を返す。種別が増えたらここに足す */
-function selectIcon(appearance: MapItemAppearance) {
-  switch (appearance.kind) {
-    case "chest":
-      return ChestIcon;
-    case "corpse":
-      return CorpseIcon;
-    case "sacred_seal":
-      return SacredSealIcon;
-  }
-}
-
-const { appearance } = itemType;
-// Astro でコンポーネントとして展開するため大文字で始める
-const Icon = selectIcon(appearance);
+// 線画は CSS 変数で塗り色を受け取るため、インラインで展開する(img 要素では効かない)
+const Icon = itemType.icon;
 const size = fitToShortSide(
   Icon.width,
   Icon.height,
@@ -61,8 +39,8 @@ const size = fitToShortSide(
 );
 
 const styles: string[] = [];
-if (appearance.kind === "chest") {
-  styles.push(`--chest-fill: ${appearance.fillColor};`);
+if (itemType.fillColor !== undefined) {
+  styles.push(`--icon-fill: ${itemType.fillColor};`);
 }
 if (placement !== undefined) {
   // 地図の拡大率と表示位置に追従させるため、座標は画像に対する割合で渡す
@@ -71,15 +49,13 @@ if (placement !== undefined) {
     `--item-x: ${item.x / mapWidth}; --item-y: ${item.y / mapHeight};`,
   );
 }
-
-const className =
-  placement === undefined
-    ? "map-item-icon"
-    : "map-item-icon map-item-icon--placed";
 ---
 
 <Icon
-  class={className}
+  class:list={[
+    "map-item-icon",
+    placement !== undefined && "map-item-icon--placed",
+  ]}
   style={styles.join(" ")}
   width={size.width}
   height={size.height}

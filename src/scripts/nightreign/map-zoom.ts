@@ -47,6 +47,14 @@ function setupMapZoom(root: HTMLElement): void {
     throw new Error("地図の表示領域が見つかりません");
   }
 
+  // DOM は増減しないので、状態更新のたびに引き直さず最初に集めておく
+  const zoomInButtons = Array.from(
+    root.querySelectorAll<HTMLButtonElement>('[data-zoom-action="in"]'),
+  );
+  const zoomOutButtons = Array.from(
+    root.querySelectorAll<HTMLButtonElement>('[data-zoom-action="out"]'),
+  );
+
   let state: ZoomState = INITIAL_ZOOM_STATE;
   // 押されているポインタの位置。2つになったらピンチとして扱う
   const activePointers = new Map<number, Point>();
@@ -63,36 +71,23 @@ function setupMapZoom(root: HTMLElement): void {
     root.style.setProperty("--pan-y", `${state.panY}px`);
 
     const isZoomed = state.zoom > MIN_ZOOM;
+    // 拡大中だけタッチを地図の移動に使う。切り替えは CSS 側が受け持つ
     root.classList.toggle("is-zoomed", isZoomed);
-    // 拡大中だけタッチを地図の移動に使い、等倍のときはページの縦スクロールに残す
-    for (const panel of panels) {
-      panel.style.touchAction = isZoomed ? "none" : "pan-y";
-    }
-    for (const button of root.querySelectorAll<HTMLButtonElement>(
-      '[data-zoom-action="in"]',
-    )) {
+    for (const button of zoomInButtons) {
       button.disabled = state.zoom >= MAX_ZOOM;
     }
-    for (const button of root.querySelectorAll<HTMLButtonElement>(
-      '[data-zoom-action="out"]',
-    )) {
+    for (const button of zoomOutButtons) {
       button.disabled = !isZoomed;
     }
   }
 
-  /** 枠の左上を原点とした座標に変換する */
-  function toLocalPoint(panel: HTMLElement, clientPoint: Point): Point {
-    const rect = panel.getBoundingClientRect();
-    return { x: clientPoint.x - rect.left, y: clientPoint.y - rect.top };
-  }
-
+  /** 枠の左上を原点とした座標を基準に倍率を変える */
   function zoomTo(panel: HTMLElement, focus: Point, nextZoom: number): void {
     const rect = panel.getBoundingClientRect();
-    const local = toLocalPoint(panel, focus);
     state = zoomAtPoint(
       state,
-      local.x,
-      local.y,
+      focus.x - rect.left,
+      focus.y - rect.top,
       nextZoom,
       rect.width,
       rect.height,

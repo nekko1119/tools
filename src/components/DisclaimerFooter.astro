@@ -1,0 +1,19 @@
+---
+interface Props {
+  /** ページ本体と幅を揃えるための Tailwind クラス */
+  maxWidthClass?: string;
+}
+
+const { maxWidthClass = "max-w-2xl" } = Astro.props;
+---
+
+<footer
+  class:list={[
+    "container mx-auto p-4 mt-8 border-t border-base-300",
+    maxWidthClass,
+  ]}
+>
+  <p class="text-xs text-base-content/50">
+    ※ 掲載データの正確性を保証するものではありません。
+  </p>
+</footer>

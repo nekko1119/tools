@@ -1,6 +1,6 @@
 ---
 import type { MapLocation } from "../types/nightreign-map";
-import type { MapItemPattern, MapItemType } from "../types/nightreign-map-item";
+import type { MapItemPattern } from "../types/nightreign-map-item";
 import MapFloorSwitch from "./MapFloorSwitch.astro";
 
 interface Props {
@@ -9,10 +9,9 @@ interface Props {
   mapName: string;
   /** 拠点の全パターン。表示順に並んでいる */
   patterns: readonly MapItemPattern[];
-  itemTypes: readonly MapItemType[];
 }
 
-const { location, mapName, patterns, itemTypes } = Astro.props;
+const { location, mapName, patterns } = Astro.props;
 
 const viewId = `map-${location.slug}`;
 
@@ -38,6 +37,7 @@ const initialPattern = patterns[0];
         <span class="pattern-switch__title">パターン</span>
         {patterns.map((pattern, index) => {
           const inputId = `${viewId}-pattern-${index}`;
+          // 表示の出し分けは名前で対応させる。添字だと絞り込み条件を変えるたびにずれる
           return (
             <>
               <input
@@ -45,9 +45,8 @@ const initialPattern = patterns[0];
                 name={`${viewId}-pattern`}
                 id={inputId}
                 class="pattern-switch__input"
-                data-pattern-input={index}
+                data-pattern-input={pattern.name}
                 data-map-type={pattern.mapTypeId}
-                data-view={viewId}
                 checked={index === 0}
               />
               <label
@@ -74,8 +73,8 @@ const initialPattern = patterns[0];
           switchId={`${viewId}-floor-${type.id}`}
           type={type}
           mapName={mapName}
-          patterns={patterns}
-          itemTypes={itemTypes}
+          patterns={patterns.filter((pattern) => pattern.mapTypeId === type.id)}
+          initialPatternName={initialPattern?.name}
         />
       </div>
     ))

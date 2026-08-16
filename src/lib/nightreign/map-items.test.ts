@@ -1,6 +1,7 @@
 import type { ImageMetadata } from "astro";
 import { describe, expect, it } from "vitest";
 import type { MapLocation } from "../../types/nightreign-map";
+import type { MapItemIcon, MapItemType } from "../../types/nightreign-map-item";
 import { parseMapItemPlacement } from "./map-items";
 
 const image = {
@@ -30,10 +31,24 @@ const location: MapLocation = {
   ],
 };
 
-const ITEM_TYPE_IDS = ["common_chest", "rare_chest", "corpse"];
+const icon = { width: 16, height: 16 } as MapItemIcon;
+
+const ITEM_TYPES: readonly MapItemType[] = [
+  { id: "common_chest", label: "宝箱", icon },
+  { id: "rare_chest", label: "レア宝箱", icon },
+  { id: "corpse", label: "遺体", icon },
+];
+
+function itemTypeOf(id: string): MapItemType {
+  const itemType = ITEM_TYPES.find((candidate) => candidate.id === id);
+  if (itemType === undefined) {
+    throw new Error(`テストの種別「${id}」が定義されていません`);
+  }
+  return itemType;
+}
 
 function parse(source: unknown) {
-  return parseMapItemPlacement(source, location, ITEM_TYPE_IDS, "テスト.yaml");
+  return parseMapItemPlacement(source, location, ITEM_TYPES, "テスト.yaml");
 }
 
 describe("parseMapItemPlacement", () => {
@@ -61,14 +76,16 @@ describe("parseMapItemPlacement", () => {
         name: "パターン1",
         mapTypeId: "a",
         itemsByFloorId: {
-          "1f": [{ typeId: "common_chest", x: 994, y: 513 }],
-          b1: [{ typeId: "corpse", x: 100, y: 200 }],
+          "1f": [{ itemType: itemTypeOf("common_chest"), x: 994, y: 513 }],
+          b1: [{ itemType: itemTypeOf("corpse"), x: 100, y: 200 }],
         },
       },
       {
         name: "パターン2",
         mapTypeId: "b",
-        itemsByFloorId: { "1f": [{ typeId: "rare_chest", x: 1, y: 2 }] },
+        itemsByFloorId: {
+          "1f": [{ itemType: itemTypeOf("rare_chest"), x: 1, y: 2 }],
+        },
       },
     ]);
   });

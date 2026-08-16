@@ -7,10 +7,10 @@ export type Breadcrumb = {
 interface Props {
   breadcrumbs: Breadcrumb[];
   /** ページ本体の max-width と揃えるための Tailwind クラス */
-  maxWidthClass?: string;
+  maxWidthClass: string;
 }
 
-const { breadcrumbs, maxWidthClass = "max-w-2xl" } = Astro.props;
+const { breadcrumbs, maxWidthClass } = Astro.props;
 ---
 
 <header class="bg-base-200 border-b border-base-300">

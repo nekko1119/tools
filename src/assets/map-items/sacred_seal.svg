@@ -6,7 +6,7 @@
 >
   <g stroke="#171a1f" stroke-miterlimit="10">
     <path
-      fill="#b9bec6"
+      fill="var(--icon-fill, none)"
       fill-rule="evenodd"
       d="M 17.78 88.46 L 38.3 6.5 Q 48.3 -3.5 58.3 6.5 L 38.3 86.5 L 98.3 36.5 Q 118.3 36.5 108.3 56.5 L 48.3 106.5 A 20 20 0 1 1 17.78 88.46 Z M 18.3 106.5 A 10 10 0 1 0 38.3 106.5 A 10 10 0 1 0 18.3 106.5 Z"
       vector-effect="non-scaling-stroke"

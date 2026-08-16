@@ -1,20 +1,33 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readDataYaml } from "./data-file";
 
 /** プロジェクトルートからの翻訳定義ファイルの相対パス */
 const TRANSLATIONS_FILE_PATH = "data/nightreign_translations.yaml";
 
+/** 読み込んだ対応表。全ページで同じ内容なので一度だけ読む */
+let cached: Record<string, string> | undefined;
+
 /**
- * `キー: "値"` 形式の行だけを拾う簡易パーサ。
- * コメント行・空行・インデントされた行は翻訳定義ではないため無視する。
+ * 読み解いた yaml を英名から日本語名への対応表にする。
+ * 値が文字列でない項目は翻訳ではないためエラーにする。
  */
-export function parseTranslations(yamlText: string): Record<string, string> {
+export function toTranslations(source: unknown): Record<string, string> {
+  if (source === null || source === undefined) {
+    return {};
+  }
+  if (typeof source !== "object" || Array.isArray(source)) {
+    throw new Error(
+      `${TRANSLATIONS_FILE_PATH} は「キー: 値」の形で書いてください`,
+    );
+  }
+
   const translations: Record<string, string> = {};
-  for (const line of yamlText.split("\n")) {
-    const match = line.match(/^([^#\s][^:]*?):\s*"(.*)"\s*$/);
-    if (match) {
-      translations[match[1].trim()] = match[2];
+  for (const [key, value] of Object.entries(source)) {
+    if (typeof value !== "string") {
+      throw new Error(
+        `${TRANSLATIONS_FILE_PATH} の「${key}」の訳が文字列ではありません`,
+      );
     }
+    translations[key] = value;
   }
   return translations;
 }
@@ -24,14 +37,8 @@ export function parseTranslations(yamlText: string): Record<string, string> {
  * ビルド時にのみ呼び出すこと。
  */
 export function loadTranslations(): Record<string, string> {
-  const filePath = resolve(process.cwd(), TRANSLATIONS_FILE_PATH);
-  let yamlText: string;
-  try {
-    yamlText = readFileSync(filePath, "utf-8");
-  } catch (cause) {
-    throw new Error(`翻訳定義ファイルを読み込めません: ${filePath}`, { cause });
-  }
-  return parseTranslations(yamlText);
+  cached ??= toTranslations(readDataYaml(TRANSLATIONS_FILE_PATH));
+  return cached;
 }
 
 /**

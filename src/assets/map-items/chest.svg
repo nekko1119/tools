@@ -6,7 +6,7 @@
 >
   <g fill="none" stroke="#171a1f" stroke-miterlimit="10">
     <path
-      fill="var(--chest-fill, none)"
+      fill="var(--icon-fill, none)"
       d="M -2.5 36.5 Q -2.5 -3.5 17.5 -3.5 L 97.5 -3.5 Q 117.5 -3.5 117.5 36.5 L 117.5 76.5 L -2.5 76.5 Z"
     />
     <path d="M -2.5 36.5 L 117.5 36.5" />
