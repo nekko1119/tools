@@ -8,6 +8,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "type-check": "astro sync && tsc --noEmit",
+    "test": "vitest run",
     "lint": "eslint .",
     "format": "prettier --write .",
     "prepare": "husky"
@@ -39,6 +40,7 @@
     "prettier": "3.9.6",
     "prettier-plugin-astro": "0.14.1",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.66.0"
+    "typescript-eslint": "8.66.0",
+    "vitest": "4.1.10"
   }
 }
