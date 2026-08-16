@@ -11,11 +11,19 @@ interface Props {
 }
 
 const { switchId, type, mapName } = Astro.props;
+
+const firstFloor = type.floors[0];
+if (firstFloor === undefined) {
+  throw new Error(`地図のタイプ「${type.id}」に階層が定義されていません`);
+}
+
+// 拡大しても枠の大きさが変わらないよう、表示領域は画像の縦横比で固定する
+const aspectRatio = `${firstFloor.images.dark.width} / ${firstFloor.images.dark.height}`;
 ---
 
 <div
   class="floor-switch"
-  style={`--floor-count: ${type.floors.length}`}
+  style={`--floor-count: ${type.floors.length}; --map-aspect: ${aspectRatio};`}
   role="group"
   aria-label={`${mapName} の階層`}
 >
@@ -35,20 +43,49 @@ const { switchId, type, mapName } = Astro.props;
             {floor.label}
           </label>
           <div class="floor-switch__panel">
-            <Image
-              src={floor.images.dark}
-              alt={`${mapName} ${floor.label} の地図`}
-              widths={[640, 1024, 1600]}
-              sizes="(min-width: 40rem) 60rem, 100vw"
-              loading="eager"
-              class="w-full h-auto"
-            />
+            <div class="floor-switch__canvas">
+              <Image
+                src={floor.images.dark}
+                alt={`${mapName} ${floor.label} の地図`}
+                widths={[640, 1024, 1600, 2338]}
+                sizes="(min-width: 40rem) 60rem, 100vw"
+                loading="eager"
+                draggable={false}
+              />
+            </div>
+            <div class="floor-switch__controls">
+              <button
+                type="button"
+                class="btn btn-sm btn-neutral"
+                data-zoom-action="in"
+                aria-label="地図を拡大する"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-neutral"
+                data-zoom-action="out"
+                aria-label="地図を縮小する"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-neutral"
+                data-zoom-action="reset"
+              >
+                リセット
+              </button>
+            </div>
           </div>
         </>
       );
     })
   }
 </div>
+
+<script src="../scripts/nightreign/map-zoom.ts"></script>
 
 <style>
   .floor-switch {
@@ -87,10 +124,13 @@ const { switchId, type, mapName } = Astro.props;
     display: none;
     order: 2;
     grid-column: 1 / -1;
-    /* 将来ピンを重ねられるようにする */
     position: relative;
+    /* 拡大した地図が枠からはみ出さないようにする */
     overflow: hidden;
+    aspect-ratio: var(--map-aspect);
     border-radius: var(--radius-box);
+    /* JavaScript が読み込まれるまではページの縦スクロールを妨げない */
+    touch-action: pan-y;
     /* TODO: ライトテーマ用の地図画像が用意できたら削除する。
        それまではライトテーマで黒背景の画像が浮かないよう暗い背景を敷く */
     background-color: var(--color-neutral);
@@ -99,6 +139,55 @@ const { switchId, type, mapName } = Astro.props;
   /* 選択された階層の地図だけを表示する */
   .floor-switch__input:checked + .floor-switch__label + .floor-switch__panel {
     display: block;
+  }
+
+  /* 拡大縮小の対象。階層ごとの画像は個別に変形せずこのレイヤーに乗る */
+  .floor-switch__canvas {
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+    transform: translate(var(--pan-x, 0px), var(--pan-y, 0px))
+      scale(var(--zoom, 1));
+  }
+
+  .floor-switch__canvas :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* 地図をドラッグして動かすため、画像自体のドラッグと選択を止める */
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .floor-switch.is-zoomed .floor-switch__canvas {
+    cursor: grab;
+  }
+
+  .floor-switch.is-zoomed.is-grabbing .floor-switch__canvas {
+    cursor: grabbing;
+  }
+
+  .floor-switch__controls {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: var(--radius-field);
+    /* 地図の線に紛れないよう、ボタンの背後を暗く落とす */
+    background-color: color-mix(
+      in oklab,
+      var(--color-base-100) 70%,
+      transparent
+    );
+    backdrop-filter: blur(2px);
+    /* 地図の上に重ねるが、ドラッグの邪魔をしないようボタンの上だけ反応させる */
+    pointer-events: none;
+  }
+
+  .floor-switch__controls > * {
+    pointer-events: auto;
   }
 
   @media (width >= 40rem) {
