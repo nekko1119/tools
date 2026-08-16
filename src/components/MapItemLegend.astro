@@ -1,0 +1,38 @@
+---
+import type { MapItemType } from "../types/nightreign-map-item";
+import MapItemIcon from "./MapItemIcon.astro";
+
+interface Props {
+  itemTypes: readonly MapItemType[];
+}
+
+const { itemTypes } = Astro.props;
+---
+
+<ul class="map-legend" aria-label="アイコンの凡例">
+  {
+    itemTypes.map((itemType) => (
+      <li class="map-legend__item">
+        <MapItemIcon itemType={itemType} />
+        <span>{itemType.label}</span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    color: color-mix(in oklab, var(--color-base-content) 80%, transparent);
+  }
+
+  .map-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+</style>
