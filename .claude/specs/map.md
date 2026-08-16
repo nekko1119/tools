@@ -199,13 +199,22 @@ types:
 
 ### アイテム種別
 
-種別ごとのアイコン画像と表示名は `src/data/` に TypeScript で定義する。アイコン画像の import が必要なため。
+種別ごとの見た目と表示名は `src/data/` に TypeScript で定義する。画像の import が必要なため。
 
-| 識別子         | 画像                                  |
-| -------------- | ------------------------------------- |
-| `common_chest` | `src/assets/map-items/common_chest.*` |
-| `rare_chest`   | `src/assets/map-items/rare_chest.*`   |
-| `corpse`       | `src/assets/map-items/corpse.*`       |
+見た目には2通りある。
+
+| 識別子         | 見た目                                           |
+| -------------- | ------------------------------------------------ |
+| `common_chest` | `chest.svg` を黄みのオレンジで塗る               |
+| `rare_chest`   | `chest.svg` を灰色で塗る                         |
+| `corpse`       | `src/assets/map-items/corpse.*` の写真をそのまま |
+
+宝箱は2種とも同じ `src/assets/map-items/chest.svg` を使い、内側の塗り色だけで区別する。
+形が揃っていれば地図上で宝箱だと分かり、色でレア度を表せるため。
+通常の宝箱は実際には茶色だが、暗い地図の上で沈むため視認性を優先して黄みのオレンジにする。
+
+`chest.svg` は線の色を `currentColor`、内側の塗りを `--chest-fill` で受け取る。
+CSS を効かせるため、`img` 要素ではなくインラインで埋め込む。
 
 ### アイコンの表示
 
