@@ -1,12 +1,9 @@
-import type { ImageMetadata } from "astro";
-
 /**
  * アイコンの見せ方。
- * 宝箱は共通の線画を塗り分け、それ以外は写真をそのまま出す。
+ * 宝箱は共通の線画を塗り分けて使い、それ以外は種別ごとの線画を使う。
  */
 export type MapItemAppearance =
-  | { kind: "photo"; image: ImageMetadata }
-  | { kind: "chest"; fillColor: string };
+  { kind: "chest"; fillColor: string } | { kind: "corpse" };
 
 /** アイテム種別の定義 */
 export type MapItemType = {

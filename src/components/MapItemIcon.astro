@@ -1,8 +1,8 @@
 ---
-import { Image } from "astro:assets";
 // 線の色を currentColor、内側の塗りを --chest-fill で受け取る線画。
 // CSS を効かせるためインラインで展開する(img 要素では効かない)
 import ChestIcon from "../assets/map-items/chest.svg";
+import CorpseIcon from "../assets/map-items/corpse.svg";
 import type { MapItem, MapItemType } from "../types/nightreign-map-item";
 
 interface Props {
@@ -34,36 +34,23 @@ function fitToShortSide(
 const positionStyle = `--item-x: ${item.x / mapWidth}; --item-y: ${item.y / mapHeight};`;
 
 const { appearance } = itemType;
-const size =
+// Astro でコンポーネントとして展開するため大文字で始める
+const Icon = appearance.kind === "chest" ? ChestIcon : CorpseIcon;
+const size = fitToShortSide(Icon.width, Icon.height);
+const style =
   appearance.kind === "chest"
-    ? fitToShortSide(ChestIcon.width, ChestIcon.height)
-    : fitToShortSide(appearance.image.width, appearance.image.height);
+    ? `${positionStyle} --chest-fill: ${appearance.fillColor};`
+    : positionStyle;
 ---
 
-{
-  appearance.kind === "chest" ? (
-    <ChestIcon
-      class="map-item-icon map-item-icon--chest"
-      style={`${positionStyle} --chest-fill: ${appearance.fillColor};`}
-      width={size.width}
-      height={size.height}
-      role="img"
-      aria-label={itemType.label}
-    />
-  ) : (
-    <Image
-      class="map-item-icon map-item-icon--photo"
-      style={positionStyle}
-      src={appearance.image}
-      alt={itemType.label}
-      width={size.width}
-      height={size.height}
-      densities={[1, 2]}
-      loading="eager"
-      draggable={false}
-    />
-  )
-}
+<Icon
+  class="map-item-icon"
+  style={style}
+  width={size.width}
+  height={size.height}
+  role="img"
+  aria-label={itemType.label}
+/>
 
 <style>
   .map-item-icon {
@@ -75,22 +62,5 @@ const size =
     translate: -50% -50%;
     user-select: none;
     -webkit-user-drag: none;
-  }
-
-  /* 地図の表示領域は常に暗いため、縁取りの色はテーマに追従させない。
-     テーマの色を使うとライトテーマで灰色のレア宝箱と縁取りが同化する。
-     TODO: ライトテーマ用の地図画像を入れるときに、地図の明るさに合わせて見直す */
-  .map-item-icon--chest {
-    /* 明るい塗りを暗い線で締める */
-    color: #171a1f;
-    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.8));
-  }
-
-  /* 写真は暗く輪郭が地図に溶けるため、明るい枠で囲む */
-  .map-item-icon--photo {
-    border-radius: var(--radius-field);
-    outline: 2px solid #e7e9ee;
-    outline-offset: -1px;
-    box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
   }
 </style>

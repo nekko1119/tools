@@ -1,4 +1,3 @@
-import corpseIcon from "../assets/map-items/corpse.jpg";
 import type { MapItemType } from "../types/nightreign-map-item";
 
 /** 通常の宝箱。実際は茶色だが暗い地図の上で沈むため黄みのオレンジにする */
@@ -22,9 +21,5 @@ export const nightreignMapItemTypes: readonly MapItemType[] = [
     label: "レアな宝箱",
     appearance: { kind: "chest", fillColor: RARE_CHEST_COLOR },
   },
-  {
-    id: "corpse",
-    label: "死体",
-    appearance: { kind: "photo", image: corpseIcon },
-  },
+  { id: "corpse", label: "死体", appearance: { kind: "corpse" } },
 ];
