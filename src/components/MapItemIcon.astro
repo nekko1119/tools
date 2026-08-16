@@ -18,15 +18,16 @@ interface Props {
 
 const { itemType, placement } = Astro.props;
 
-/** アイコンの短辺の表示サイズ */
-const ICON_SHORT_SIDE = 16;
+/** アイコンの短辺の表示サイズ。種別ごとに変えられる */
+const DEFAULT_ICON_SHORT_SIDE = 16;
 
 /** 元の比率を保ったまま、短辺が指定の大きさになる寸法を求める */
 function fitToShortSide(
   width: number,
   height: number,
+  shortSide: number,
 ): { width: number; height: number } {
-  const scale = ICON_SHORT_SIDE / Math.min(width, height);
+  const scale = shortSide / Math.min(width, height);
   return {
     width: Math.round(width * scale),
     height: Math.round(height * scale),
@@ -36,7 +37,11 @@ function fitToShortSide(
 const { appearance } = itemType;
 // Astro でコンポーネントとして展開するため大文字で始める
 const Icon = appearance.kind === "chest" ? ChestIcon : CorpseIcon;
-const size = fitToShortSide(Icon.width, Icon.height);
+const size = fitToShortSide(
+  Icon.width,
+  Icon.height,
+  itemType.iconShortSide ?? DEFAULT_ICON_SHORT_SIDE,
+);
 
 const styles: string[] = [];
 if (appearance.kind === "chest") {

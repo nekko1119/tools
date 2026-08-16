@@ -12,6 +12,8 @@ export type MapItemType = {
   /** 画像の alt などに使う表示名 */
   label: string;
   appearance: MapItemAppearance;
+  /** アイコンの短辺の表示サイズ(px)。省略すると既定の大きさになる */
+  iconShortSide?: number;
 };
 
 /** 地図に置く1つのアイテム。座標は地図画像の原寸を基準としたピクセル値 */

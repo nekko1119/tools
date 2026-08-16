@@ -21,5 +21,11 @@ export const nightreignMapItemTypes: readonly MapItemType[] = [
     label: "レア宝箱",
     appearance: { kind: "chest", fillColor: RARE_CHEST_COLOR },
   },
-  { id: "corpse", label: "遺体", appearance: { kind: "corpse" } },
+  {
+    id: "corpse",
+    label: "遺体",
+    appearance: { kind: "corpse" },
+    // 円だけの単純な形なので、宝箱より小さくても見分けられる
+    iconShortSide: 8,
+  },
 ];
