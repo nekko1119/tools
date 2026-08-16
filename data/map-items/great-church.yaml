@@ -8,27 +8,37 @@
 #   common_chest ... 宝箱
 #   rare_chest   ... レア宝箱
 #   corpse       ... 遺体
+#   sacred_seal  ... 聖印
 #
 # types のキーは地図のタイプid、floors のキーは階層idです。
 # アイテムが無い階層は行ごと省略できます。
 # 書き間違いはビルド時にエラーになります (pnpm build で確認できます)。
 
 types:
-  # タイプA
+  # タイプA - 地下がある
   a:
-    - name: 配置1
+    - name: 無(霊廟騎士)
       floors:
-        2f: []
+        2f:
+          - { item: common_chest, x: 850, y: 500 }
+          - { item: common_chest, x: 760, y: 1020 }
         1f:
-          # ↓ 位置の見当を付けるための仮置きです。実際の座標に書き換えてください
-          - { item: common_chest, x: 760, y: 300 }
-          - { item: rare_chest, x: 1050, y: 620 }
-          - { item: corpse, x: 620, y: 1080 }
-        b1: []
-
-    - name: 配置2
-      floors:
-        1f:
-          - { item: rare_chest, x: 1500, y: 400 }
+          - { item: rare_chest, x: 700, y: 760 }
+          - { item: corpse, x: 750, y: 760 }
         b1:
-          - { item: common_chest, x: 900, y: 250 }
+          - { item: common_chest, x: 1050, y: 290 }
+          - { item: corpse, x: 1200, y: 350 }
+          - { item: sacred_seal, x: 1320, y: 720 }
+    - name: 炎(火の僧兵)
+      floors:
+        2f:
+          - { item: corpse, x: 860, y: 500 }
+          - { item: common_chest, x: 820, y: 1000 }
+        1f:
+          - { item: rare_chest, x: 700, y: 760 }
+          - { item: common_chest, x: 1520, y: 760 }
+          - { item: corpse, x: 1270, y: 1000 }
+        b1:
+          - { item: corpse, x: 1050, y: 290 }
+          - { item: corpse, x: 1200, y: 350 }
+          - { item: sacred_seal, x: 1320, y: 720 }

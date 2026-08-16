@@ -3,7 +3,12 @@
 // CSS 変数を効かせるためインラインで展開する(img 要素では効かない)
 import ChestIcon from "../assets/map-items/chest.svg";
 import CorpseIcon from "../assets/map-items/corpse.svg";
-import type { MapItem, MapItemType } from "../types/nightreign-map-item";
+import SacredSealIcon from "../assets/map-items/sacred_seal.svg";
+import type {
+  MapItem,
+  MapItemAppearance,
+  MapItemType,
+} from "../types/nightreign-map-item";
 
 interface Props {
   itemType: MapItemType;
@@ -34,9 +39,21 @@ function fitToShortSide(
   };
 }
 
+/** 見せ方に対応する線画を返す。種別が増えたらここに足す */
+function selectIcon(appearance: MapItemAppearance) {
+  switch (appearance.kind) {
+    case "chest":
+      return ChestIcon;
+    case "corpse":
+      return CorpseIcon;
+    case "sacred_seal":
+      return SacredSealIcon;
+  }
+}
+
 const { appearance } = itemType;
 // Astro でコンポーネントとして展開するため大文字で始める
-const Icon = appearance.kind === "chest" ? ChestIcon : CorpseIcon;
+const Icon = selectIcon(appearance);
 const size = fitToShortSide(
   Icon.width,
   Icon.height,

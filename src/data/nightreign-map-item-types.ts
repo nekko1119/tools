@@ -28,4 +28,5 @@ export const nightreignMapItemTypes: readonly MapItemType[] = [
     // 円だけの単純な形なので、宝箱より小さくても見分けられる
     iconShortSide: 8,
   },
+  { id: "sacred_seal", label: "聖印", appearance: { kind: "sacred_seal" } },
 ];

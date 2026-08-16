@@ -3,7 +3,9 @@
  * 宝箱は共通の線画を塗り分けて使い、それ以外は種別ごとの線画を使う。
  */
 export type MapItemAppearance =
-  { kind: "chest"; fillColor: string } | { kind: "corpse" };
+  | { kind: "chest"; fillColor: string }
+  | { kind: "corpse" }
+  | { kind: "sacred_seal" };
 
 /** アイテム種別の定義 */
 export type MapItemType = {
