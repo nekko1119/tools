@@ -104,10 +104,12 @@ function findItemType(typeId: string): MapItemType {
               <div data-pattern-index={index} hidden={index !== 0}>
                 {(pattern.itemsByFloorId[floor.id] ?? []).map((item) => (
                   <MapItemIcon
-                    item={item}
                     itemType={findItemType(item.typeId)}
-                    mapWidth={floor.images.dark.width}
-                    mapHeight={floor.images.dark.height}
+                    placement={{
+                      item,
+                      mapWidth: floor.images.dark.width,
+                      mapHeight: floor.images.dark.height,
+                    }}
                   />
                 ))}
               </div>

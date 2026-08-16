@@ -6,14 +6,17 @@ import CorpseIcon from "../assets/map-items/corpse.svg";
 import type { MapItem, MapItemType } from "../types/nightreign-map-item";
 
 interface Props {
-  item: MapItem;
   itemType: MapItemType;
-  /** 座標の基準になる地図画像の原寸 */
-  mapWidth: number;
-  mapHeight: number;
+  /** 地図に重ねるときの位置。省略すると流し込みで並ぶ(凡例など) */
+  placement?: {
+    item: MapItem;
+    /** 座標の基準になる地図画像の原寸 */
+    mapWidth: number;
+    mapHeight: number;
+  };
 }
 
-const { item, itemType, mapWidth, mapHeight } = Astro.props;
+const { itemType, placement } = Astro.props;
 
 /** アイコンの短辺の表示サイズ */
 const ICON_SHORT_SIDE = 16;
@@ -30,22 +33,32 @@ function fitToShortSide(
   };
 }
 
-// 地図の拡大率と表示位置に追従させるため、座標は画像に対する割合で渡す
-const positionStyle = `--item-x: ${item.x / mapWidth}; --item-y: ${item.y / mapHeight};`;
-
 const { appearance } = itemType;
 // Astro でコンポーネントとして展開するため大文字で始める
 const Icon = appearance.kind === "chest" ? ChestIcon : CorpseIcon;
 const size = fitToShortSide(Icon.width, Icon.height);
-const style =
-  appearance.kind === "chest"
-    ? `${positionStyle} --chest-fill: ${appearance.fillColor};`
-    : positionStyle;
+
+const styles: string[] = [];
+if (appearance.kind === "chest") {
+  styles.push(`--chest-fill: ${appearance.fillColor};`);
+}
+if (placement !== undefined) {
+  // 地図の拡大率と表示位置に追従させるため、座標は画像に対する割合で渡す
+  const { item, mapWidth, mapHeight } = placement;
+  styles.push(
+    `--item-x: ${item.x / mapWidth}; --item-y: ${item.y / mapHeight};`,
+  );
+}
+
+const className =
+  placement === undefined
+    ? "map-item-icon"
+    : "map-item-icon map-item-icon--placed";
 ---
 
 <Icon
-  class="map-item-icon"
-  style={style}
+  class={className}
+  style={styles.join(" ")}
   width={size.width}
   height={size.height}
   role="img"
@@ -54,13 +67,16 @@ const style =
 
 <style>
   .map-item-icon {
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .map-item-icon--placed {
     position: absolute;
     /* 地図の拡大率と表示位置を座標にだけ反映し、アイコン自体は拡大しない */
     left: calc(var(--pan-x, 0px) + var(--item-x) * 100% * var(--zoom, 1));
     top: calc(var(--pan-y, 0px) + var(--item-y) * 100% * var(--zoom, 1));
     /* 座標がアイコンの中心を指すようにする */
     translate: -50% -50%;
-    user-select: none;
-    -webkit-user-drag: none;
   }
 </style>
