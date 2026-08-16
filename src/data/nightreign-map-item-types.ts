@@ -3,7 +3,7 @@ import type { MapItemType } from "../types/nightreign-map-item";
 /** 通常の宝箱。実際は茶色だが暗い地図の上で沈むため黄みのオレンジにする */
 const COMMON_CHEST_COLOR = "#e0a83c";
 
-/** レアな宝箱。石造りの見た目に寄せた灰色 */
+/** レア宝箱。石造りの見た目に寄せた灰色 */
 const RARE_CHEST_COLOR = "#b9bec6";
 
 /**
@@ -18,8 +18,8 @@ export const nightreignMapItemTypes: readonly MapItemType[] = [
   },
   {
     id: "rare_chest",
-    label: "レアな宝箱",
+    label: "レア宝箱",
     appearance: { kind: "chest", fillColor: RARE_CHEST_COLOR },
   },
-  { id: "corpse", label: "死体", appearance: { kind: "corpse" } },
+  { id: "corpse", label: "遺体", appearance: { kind: "corpse" } },
 ];
