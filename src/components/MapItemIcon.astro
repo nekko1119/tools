@@ -1,0 +1,56 @@
+---
+import { Image } from "astro:assets";
+import type { MapItem, MapItemType } from "../types/nightreign-map-item";
+
+interface Props {
+  item: MapItem;
+  itemType: MapItemType;
+  /** 座標の基準になる地図画像の原寸 */
+  mapWidth: number;
+  mapHeight: number;
+}
+
+const { item, itemType, mapWidth, mapHeight } = Astro.props;
+
+/** アイコンの短辺の表示サイズ */
+const ICON_SHORT_SIDE = 32;
+
+// 元画像の比率を保ったまま、短辺が 32px になるよう縮める
+const scale =
+  ICON_SHORT_SIDE / Math.min(itemType.icon.width, itemType.icon.height);
+const width = Math.round(itemType.icon.width * scale);
+const height = Math.round(itemType.icon.height * scale);
+
+// 地図の拡大率と表示位置に追従させるため、座標は画像に対する割合で渡す
+const ratioStyle = `--item-x: ${item.x / mapWidth}; --item-y: ${item.y / mapHeight};`;
+---
+
+<Image
+  class="map-item-icon"
+  style={ratioStyle}
+  src={itemType.icon}
+  alt={itemType.label}
+  width={width}
+  height={height}
+  densities={[1, 2]}
+  loading="eager"
+  draggable={false}
+/>
+
+<style>
+  .map-item-icon {
+    position: absolute;
+    /* 地図の拡大率と表示位置を座標にだけ反映し、アイコン自体は拡大しない */
+    left: calc(var(--pan-x, 0px) + var(--item-x) * 100% * var(--zoom, 1));
+    top: calc(var(--pan-y, 0px) + var(--item-y) * 100% * var(--zoom, 1));
+    /* 座標がアイコンの中心を指すようにする */
+    translate: -50% -50%;
+    border-radius: var(--radius-field);
+    /* 暗い地図の上で沈まないよう縁取りを付ける */
+    outline: 2px solid var(--color-base-100);
+    outline-offset: -1px;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+</style>

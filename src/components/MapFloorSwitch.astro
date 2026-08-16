@@ -1,6 +1,8 @@
 ---
 import { Image } from "astro:assets";
 import type { MapType } from "../types/nightreign-map";
+import type { MapItemPattern, MapItemType } from "../types/nightreign-map-item";
+import MapItemIcon from "./MapItemIcon.astro";
 
 interface Props {
   /** radio のグループ名とidを一意にするための識別子 */
@@ -8,9 +10,12 @@ interface Props {
   type: MapType;
   /** 画像の alt の先頭に付ける名前。例: "大教会" */
   mapName: string;
+  /** このタイプのアイテム配置パターン。未定義の拠点では空になる */
+  patterns: readonly MapItemPattern[];
+  itemTypes: readonly MapItemType[];
 }
 
-const { switchId, type, mapName } = Astro.props;
+const { switchId, type, mapName, patterns, itemTypes } = Astro.props;
 
 const firstFloor = type.floors[0];
 if (firstFloor === undefined) {
@@ -19,11 +24,53 @@ if (firstFloor === undefined) {
 
 // 拡大しても枠の大きさが変わらないよう、表示領域は画像の縦横比で固定する
 const aspectRatio = `${firstFloor.images.dark.width} / ${firstFloor.images.dark.height}`;
+
+// 配置パターンが1つしかないときは選ぶ余地がないのでセレクタを出さない
+const hasPatternChoice = patterns.length > 1;
+
+function findItemType(typeId: string): MapItemType {
+  const itemType = itemTypes.find((candidate) => candidate.id === typeId);
+  if (itemType === undefined) {
+    throw new Error(`アイテム種別「${typeId}」が定義されていません`);
+  }
+  return itemType;
+}
 ---
+
+{
+  hasPatternChoice && (
+    <div class="pattern-switch" role="radiogroup" aria-label="アイテムの配置">
+      <span class="pattern-switch__title">配置</span>
+      {patterns.map((pattern, index) => {
+        const inputId = `${switchId}-pattern-${index}`;
+        return (
+          <>
+            <input
+              type="radio"
+              name={`${switchId}-pattern`}
+              id={inputId}
+              class="pattern-switch__input"
+              data-pattern-input={index}
+              data-target={switchId}
+              checked={index === 0}
+            />
+            <label
+              for={inputId}
+              class="pattern-switch__label btn btn-sm btn-outline"
+            >
+              {pattern.name}
+            </label>
+          </>
+        );
+      })}
+    </div>
+  )
+}
 
 <div
   class="floor-switch"
   style={`--floor-count: ${type.floors.length}; --map-aspect: ${aspectRatio};`}
+  id={switchId}
   role="group"
   aria-label={`${mapName} の階層`}
 >
@@ -53,6 +100,18 @@ const aspectRatio = `${firstFloor.images.dark.width} / ${firstFloor.images.dark.
                 draggable={false}
               />
             </div>
+            {patterns.map((pattern, index) => (
+              <div data-pattern-index={index} hidden={index !== 0}>
+                {(pattern.itemsByFloorId[floor.id] ?? []).map((item) => (
+                  <MapItemIcon
+                    item={item}
+                    itemType={findItemType(item.typeId)}
+                    mapWidth={floor.images.dark.width}
+                    mapHeight={floor.images.dark.height}
+                  />
+                ))}
+              </div>
+            ))}
             <div class="floor-switch__controls">
               <button
                 type="button"
@@ -86,8 +145,43 @@ const aspectRatio = `${firstFloor.images.dark.width} / ${firstFloor.images.dark.
 </div>
 
 <script src="../scripts/nightreign/map-zoom.ts"></script>
+<script src="../scripts/nightreign/map-pattern.ts"></script>
 
 <style>
+  .pattern-switch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .pattern-switch__title {
+    font-size: 0.875rem;
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  }
+
+  /* 見た目はラベルが担うため radio は隠すが、キーボード操作と読み上げには残す */
+  .pattern-switch__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .pattern-switch__input:checked + .pattern-switch__label {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  .pattern-switch__input:focus-visible + .pattern-switch__label {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
   .floor-switch {
     display: grid;
     gap: 0.75rem;

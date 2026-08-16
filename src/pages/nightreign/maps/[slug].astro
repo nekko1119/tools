@@ -1,9 +1,11 @@
 ---
 import type { GetStaticPaths } from "astro";
 import MapFloorSwitch from "../../../components/MapFloorSwitch.astro";
+import { nightreignMapItemTypes } from "../../../data/nightreign-map-item-types";
 import { nightreignMaps } from "../../../data/nightreign-maps";
 import Layout from "../../../layouts/Layout.astro";
 import { formatMapTypeLabel } from "../../../lib/nightreign/map";
+import { loadMapItemPlacement } from "../../../lib/nightreign/map-items";
 import {
   loadTranslations,
   translate,
@@ -20,6 +22,11 @@ const { location } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const translations = loadTranslations();
 const locationName = translate(translations, location.englishName);
+
+const placement = loadMapItemPlacement(
+  location,
+  nightreignMapItemTypes.map((itemType) => itemType.id),
+);
 
 // タイプが1つしかない拠点では見出しを出さず、地図だけを表示する
 const hasMultipleTypes = location.types.length > 1;
@@ -56,6 +63,8 @@ const maxWidthClass = "max-w-5xl";
                 ? `${locationName} ${formatMapTypeLabel(type)}`
                 : locationName
             }
+            patterns={placement.patternsByTypeId[type.id] ?? []}
+            itemTypes={nightreignMapItemTypes}
           />
         </section>
       ))
