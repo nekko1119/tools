@@ -14,9 +14,9 @@ interface Props {
 const { item, itemType, mapWidth, mapHeight } = Astro.props;
 
 /** アイコンの短辺の表示サイズ */
-const ICON_SHORT_SIDE = 32;
+const ICON_SHORT_SIDE = 16;
 
-/** 元の比率を保ったまま、短辺が 32px になる大きさを求める */
+/** 元の比率を保ったまま、短辺が指定の大きさになる寸法を求める */
 function fitToShortSide(
   width: number,
   height: number,
