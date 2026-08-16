@@ -125,13 +125,13 @@ yaml のパーサは現在 `quiz.astro` に直書きされているため、地�
 
 ```
 src/assets/maps/great-church/
-  great_church_1f_type_a.webp
-  great_church_2f_type_a.webp
-  great_church_b1_type_a.webp
+  great_church_type_a_2f.webp
+  great_church_type_a_1f.webp
+  great_church_type_a_b1.webp
 ```
 
 - ディレクトリ名は slug と同じケバブケース、ファイル名はスネークケース。
-- ファイル名には拠点名・階層・タイプを含める。`underground` は地上/地下の区分を意味しないため付けない。
+- ファイル名は `拠点_タイプ_階層` の順とする。`underground` は地上/地下の区分を意味しないため付けない。
 - 元の `data/great_church_underground_*.webp` は移動に伴い削除する。
 
 ## 将来の拡張
