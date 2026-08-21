@@ -39,6 +39,8 @@ const size = fitToShortSide(
 );
 
 const styles: string[] = [];
+// 表示の大きさは画面幅で変えるため、CSS 側に渡して掛け率をかけられるようにする
+styles.push(`--icon-w: ${size.width}px; --icon-h: ${size.height}px;`);
 if (itemType.fillColor !== undefined) {
   styles.push(`--icon-fill: ${itemType.fillColor};`);
 }
@@ -65,8 +67,19 @@ if (placement !== undefined) {
 
 <style>
   .map-item-icon {
+    /* 広い画面での大きさ。狭い画面では掛け率を変えて縮める */
+    --icon-scale: 1;
+    width: calc(var(--icon-w) * var(--icon-scale));
+    height: calc(var(--icon-h) * var(--icon-scale));
     user-select: none;
     -webkit-user-drag: none;
+  }
+
+  /* 画面が狭いほど地図に対してアイコンが大きく見えるため、半分にする */
+  @media (width < 40rem) {
+    .map-item-icon {
+      --icon-scale: 0.5;
+    }
   }
 
   .map-item-icon--placed {
