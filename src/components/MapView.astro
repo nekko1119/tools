@@ -1,7 +1,8 @@
 ---
 import type { MapLocation } from "../types/nightreign-map";
-import type { MapItemPattern } from "../types/nightreign-map-item";
+import type { MapItemPattern, MapItemType } from "../types/nightreign-map-item";
 import MapFloorSwitch from "./MapFloorSwitch.astro";
+import MapItemLegend from "./MapItemLegend.astro";
 
 interface Props {
   location: MapLocation;
@@ -9,9 +10,11 @@ interface Props {
   mapName: string;
   /** 拠点の全パターン。表示順に並んでいる */
   patterns: readonly MapItemPattern[];
+  /** 凡例に並べるアイテム種別。定義されているものをすべて渡す */
+  itemTypes: readonly MapItemType[];
 }
 
-const { location, mapName, patterns } = Astro.props;
+const { location, mapName, patterns, itemTypes } = Astro.props;
 
 const viewId = `map-${location.slug}`;
 
@@ -79,6 +82,8 @@ const initialPattern = patterns[0];
       </div>
     ))
   }
+
+  <MapItemLegend itemTypes={itemTypes} />
 </div>
 
 <script src="../scripts/nightreign/map-zoom.ts"></script>

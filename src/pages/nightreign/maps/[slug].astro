@@ -1,6 +1,5 @@
 ---
 import type { GetStaticPaths } from "astro";
-import MapItemLegend from "../../../components/MapItemLegend.astro";
 import MapView from "../../../components/MapView.astro";
 import { nightreignMapItemTypes } from "../../../data/nightreign-map-item-types";
 import { nightreignMaps } from "../../../data/nightreign-maps";
@@ -48,8 +47,8 @@ const maxWidthClass = "max-w-7xl";
       location={location}
       mapName={locationName}
       patterns={placement.patterns}
+      itemTypes={nightreignMapItemTypes}
     />
-    <MapItemLegend itemTypes={nightreignMapItemTypes} />
   </main>
   <DisclaimerFooter maxWidthClass={maxWidthClass} />
 </Layout>
