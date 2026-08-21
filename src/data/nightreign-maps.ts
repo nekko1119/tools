@@ -74,4 +74,10 @@ export const nightreignMaps: readonly MapLocation[] = [
       }),
     ],
   },
+  // TODO: 遺跡(Ruins)を追加する。タイプA・タイプBの2通りで、どちらも 1F と B1 を持つ。
+  // 地図画像がまだ無いため保留。用意できたら src/assets/maps/ruins/ に
+  // ruins_type_{a,b}_{dark,light}_{1f,b1}.webp の8枚を置き、ここに定義を足す。
+  // 階層は上層から下層の順に並べ(1F → B1)、defaultFloor は "1f" とする。
+  // あわせて data/map-items/ruins.yaml に各タイプのパターンを1つ以上書く。
+  // パターンがタイプを指す作りのため、パターンが無いとそのタイプの地図を選べない。
 ];
