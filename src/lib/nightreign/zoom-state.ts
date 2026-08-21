@@ -1,4 +1,4 @@
-/** 地図の拡大率と表示位置。位置は表示領域の左上を原点としたピクセル値 */
+/** 地図の拡大率と表示位置。位置は等倍のときの地図の左上を原点としたピクセル値 */
 export type ZoomState = {
   zoom: number;
   panX: number;
@@ -17,38 +17,45 @@ export const INITIAL_ZOOM_STATE: ZoomState = {
   panY: 0,
 };
 
+/** 可動域に足す余白。等倍の地図の大きさに対する割合 */
+const PAN_SLACK_RATIO = 0.5;
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
 /**
- * 拡大した地図が表示領域から離れないよう表示位置を補正する。
- * 拡大レイヤーは表示領域の zoom 倍の大きさになるため、
- * 移動できる範囲は 表示領域 * (1 - zoom) から 0 までになる。
+ * 地図が表示領域から離れすぎないよう表示位置を補正する。
+ * 地図は表示領域の中央に置かれるため、等倍の地図の半分を余分な可動域として足すと、
+ * 地図のどの端もちょうど表示領域の中央まで寄せられる。
+ * 大きさは等倍のときの地図で受け取る。拡大レイヤーはその zoom 倍になる。
  */
 export function clampPan(
   state: ZoomState,
-  viewportWidth: number,
-  viewportHeight: number,
+  mapWidth: number,
+  mapHeight: number,
 ): ZoomState {
+  const slackX = mapWidth * PAN_SLACK_RATIO;
+  const slackY = mapHeight * PAN_SLACK_RATIO;
   return {
     zoom: state.zoom,
-    panX: clamp(state.panX, viewportWidth * (1 - state.zoom), 0),
-    panY: clamp(state.panY, viewportHeight * (1 - state.zoom), 0),
+    panX: clamp(state.panX, mapWidth * (1 - state.zoom) - slackX, slackX),
+    panY: clamp(state.panY, mapHeight * (1 - state.zoom) - slackY, slackY),
   };
 }
 
 /**
- * 表示領域内の指定した点を画面上で動かさないまま倍率を変える。
+ * 指定した点を画面上で動かさないまま倍率を変える。
  * ホイールやピンチで、カーソルや指の位置を基準に拡大するために使う。
+ * 点は等倍の地図の左上を原点とした座標で渡す。
  */
 export function zoomAtPoint(
   state: ZoomState,
   focusX: number,
   focusY: number,
   nextZoom: number,
-  viewportWidth: number,
-  viewportHeight: number,
+  mapWidth: number,
+  mapHeight: number,
 ): ZoomState {
   const clampedZoom = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
   const scale = clampedZoom / state.zoom;
@@ -58,22 +65,22 @@ export function zoomAtPoint(
       panX: focusX - (focusX - state.panX) * scale,
       panY: focusY - (focusY - state.panY) * scale,
     },
-    viewportWidth,
-    viewportHeight,
+    mapWidth,
+    mapHeight,
   );
 }
 
-/** 表示位置をずらす。拡大していないときは動かせない */
+/** 表示位置をずらす。可動域を出た分は切り詰める */
 export function panBy(
   state: ZoomState,
   deltaX: number,
   deltaY: number,
-  viewportWidth: number,
-  viewportHeight: number,
+  mapWidth: number,
+  mapHeight: number,
 ): ZoomState {
   return clampPan(
     { zoom: state.zoom, panX: state.panX + deltaX, panY: state.panY + deltaY },
-    viewportWidth,
-    viewportHeight,
+    mapWidth,
+    mapHeight,
   );
 }

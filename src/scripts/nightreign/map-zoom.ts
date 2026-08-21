@@ -19,12 +19,34 @@ const DOUBLE_CLICK_STEP = 2;
 
 type Point = { x: number; y: number };
 
+/** 変形前の地図の位置と大きさ。枠とは別で、枠の中に縦横比を保って収まっている */
+type MapBox = { left: number; top: number; width: number; height: number };
+
 function distanceBetween(a: Point, b: Point): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
 function centerBetween(a: Point, b: Point): Point {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+/**
+ * 枠の中の、変形前の地図を測る。
+ * 倍率と表示位置はこの地図を基準に決めるため、枠ではなくこちらの大きさを使う。
+ */
+function mapBoxOf(panel: HTMLElement): MapBox {
+  const map = panel.querySelector<HTMLElement>(".floor-switch__map");
+  if (map === null) {
+    throw new Error("地図が見つかりません");
+  }
+  // 変形の影響を受けない値で測る。getBoundingClientRect は拡大後の大きさを返してしまう
+  const panelRect = panel.getBoundingClientRect();
+  return {
+    left: panelRect.left + map.offsetLeft,
+    top: panelRect.top + map.offsetTop,
+    width: map.offsetWidth,
+    height: map.offsetHeight,
+  };
 }
 
 /**
@@ -64,8 +86,6 @@ function setupMapZoom(root: HTMLElement): void {
     root.style.setProperty("--pan-y", `${state.panY}px`);
 
     const isZoomed = state.zoom > MIN_ZOOM;
-    // 拡大中だけタッチを地図の移動に使う。切り替えは CSS 側が受け持つ
-    root.classList.toggle("is-zoomed", isZoomed);
     for (const button of zoomInButtons) {
       button.disabled = state.zoom >= MAX_ZOOM;
     }
@@ -74,16 +94,16 @@ function setupMapZoom(root: HTMLElement): void {
     }
   }
 
-  /** 枠の左上を原点とした座標を基準に倍率を変える */
+  /** 地図の左上を原点とした座標を基準に倍率を変える */
   function zoomTo(panel: HTMLElement, focus: Point, nextZoom: number): void {
-    const rect = panel.getBoundingClientRect();
+    const box = mapBoxOf(panel);
     state = zoomAtPoint(
       state,
-      focus.x - rect.left,
-      focus.y - rect.top,
+      focus.x - box.left,
+      focus.y - box.top,
       nextZoom,
-      rect.width,
-      rect.height,
+      box.width,
+      box.height,
     );
     applyState();
   }
@@ -127,14 +147,14 @@ function setupMapZoom(root: HTMLElement): void {
       const current = { x: event.clientX, y: event.clientY };
       activePointers.set(event.pointerId, current);
 
-      const rect = panel.getBoundingClientRect();
+      const box = mapBoxOf(panel);
       if (activePointers.size === 1) {
         state = panBy(
           state,
           current.x - previous.x,
           current.y - previous.y,
-          rect.width,
-          rect.height,
+          box.width,
+          box.height,
         );
         applyState();
         return;
@@ -188,10 +208,11 @@ function setupMapZoom(root: HTMLElement): void {
     }
 
     const panel = visiblePanel();
-    const rect = panel.getBoundingClientRect();
+    // 地図は枠の中央に置かれるため、地図の中心が枠の中心にあたる
+    const box = mapBoxOf(panel);
     const center = {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
+      x: box.left + box.width / 2,
+      y: box.top + box.height / 2,
     };
     switch (action) {
       case "in":
@@ -212,8 +233,8 @@ function setupMapZoom(root: HTMLElement): void {
   // 枠の大きさが変わると移動できる範囲も変わるため、位置を取り直す。
   // スマホでアドレスバーが伸び縮みしても resize が発火しないことがあるため、枠そのものを見る
   const resizeObserver = new ResizeObserver(() => {
-    const rect = visiblePanel().getBoundingClientRect();
-    state = clampPan(state, rect.width, rect.height);
+    const box = mapBoxOf(visiblePanel());
+    state = clampPan(state, box.width, box.height);
     applyState();
   });
   resizeObserver.observe(root);
