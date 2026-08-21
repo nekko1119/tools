@@ -27,13 +27,6 @@ function centerBetween(a: Point, b: Point): Point {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }
 
-/** 地図に重ねた操作ボタンの上で起きたイベントかどうか */
-function isZoomControl(target: EventTarget | null): boolean {
-  return (
-    target instanceof Element && target.closest("[data-zoom-action]") !== null
-  );
-}
-
 /**
  * 拠点の地図に拡大縮小の操作を組み込む。
  * 倍率と表示位置は拠点単位で1つだけ持ち、全タイプの変形レイヤーに同じ値をかける。
@@ -114,10 +107,6 @@ function setupMapZoom(root: HTMLElement): void {
     );
 
     panel.addEventListener("pointerdown", (event) => {
-      // 操作ボタンを押しただけのときは地図のドラッグを始めない
-      if (isZoomControl(event.target)) {
-        return;
-      }
       panel.setPointerCapture(event.pointerId);
       activePointers.set(event.pointerId, {
         x: event.clientX,
@@ -180,10 +169,6 @@ function setupMapZoom(root: HTMLElement): void {
     }
 
     panel.addEventListener("dblclick", (event) => {
-      // 操作ボタンの連打を、地図のダブルクリックとして二重に拾わない
-      if (isZoomControl(event.target)) {
-        return;
-      }
       // 上限まで拡大済みなら等倍に戻す
       const nextZoom =
         state.zoom >= MAX_ZOOM ? MIN_ZOOM : state.zoom * DOUBLE_CLICK_STEP;
@@ -224,12 +209,14 @@ function setupMapZoom(root: HTMLElement): void {
     }
   });
 
-  // 枠の大きさが変わると移動できる範囲も変わるため、位置を取り直す
-  window.addEventListener("resize", () => {
+  // 枠の大きさが変わると移動できる範囲も変わるため、位置を取り直す。
+  // スマホでアドレスバーが伸び縮みしても resize が発火しないことがあるため、枠そのものを見る
+  const resizeObserver = new ResizeObserver(() => {
     const rect = visiblePanel().getBoundingClientRect();
     state = clampPan(state, rect.width, rect.height);
     applyState();
   });
+  resizeObserver.observe(root);
 
   applyState();
 }

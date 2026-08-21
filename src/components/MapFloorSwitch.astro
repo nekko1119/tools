@@ -28,7 +28,8 @@ const { width: mapWidth, height: mapHeight } = firstFloor.images.dark;
 
 /** 地図画像の表示幅の候補。ダーク用とライト用で揃える */
 const IMAGE_WIDTHS = [640, 1024, 1600, 2338];
-const IMAGE_SIZES = "(min-width: 40rem) 60rem, 100vw";
+// 地図は画面いっぱいに広がるため、画面幅を上限として見積もる
+const IMAGE_SIZES = "100vw";
 
 // ライトテーマ用は <source> に渡すため、あらかじめ srcset を組み立てておく
 const lightSources = await Promise.all(
@@ -46,7 +47,7 @@ const lightSources = await Promise.all(
 
 <div
   class="floor-switch"
-  style={`--floor-count: ${type.floors.length}; --map-w: ${mapWidth}; --map-h: ${mapHeight};`}
+  style={`--map-w: ${mapWidth}; --map-h: ${mapHeight};`}
   id={switchId}
   data-default-floor={type.defaultFloor}
   role="group"
@@ -108,31 +109,6 @@ const lightSources = await Promise.all(
                 ))}
               </div>
             ))}
-            <div class="floor-switch__controls">
-              <button
-                type="button"
-                class="btn btn-sm btn-neutral"
-                data-zoom-action="in"
-                aria-label="地図を拡大する"
-              >
-                +
-              </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-neutral"
-                data-zoom-action="out"
-                aria-label="地図を縮小する"
-              >
-                −
-              </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-neutral"
-                data-zoom-action="reset"
-              >
-                リセット
-              </button>
-            </div>
           </div>
         </>
       );
@@ -141,13 +117,13 @@ const lightSources = await Promise.all(
 </div>
 
 <style>
+  /* 地図は領域全体に重なるため、ここに流れるのは階層ボタンだけになる */
   .floor-switch {
-    display: grid;
-    gap: 0.75rem;
-    /* スマホでは階層ボタンを地図の上に横並びで置き、幅を均等に分ける */
-    grid-template-columns: repeat(var(--floor-count), minmax(0, 1fr));
-    /* 地図の表示領域の高さの上限 */
-    --map-max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 0.5rem;
+    padding: 0.5rem;
   }
 
   /* 見た目はラベルが担うため radio は隠すが、キーボード操作と読み上げには残す */
@@ -161,7 +137,13 @@ const lightSources = await Promise.all(
   }
 
   .floor-switch__label {
-    order: 1;
+    min-width: 5rem;
+    /* 地図は絶対配置で重なるため、ボタンを上に出す */
+    position: relative;
+    z-index: 1;
+    /* 地図の上でも読めるよう、未選択でも背後を落とす */
+    background-color: var(--map-overlay-bg);
+    backdrop-filter: blur(2px);
   }
 
   .floor-switch__input:checked + .floor-switch__label {
@@ -177,21 +159,19 @@ const lightSources = await Promise.all(
 
   .floor-switch__panel {
     display: none;
-    order: 2;
-    grid-column: 1 / -1;
-    position: relative;
+    /* 重ねたUIの下を通って、拠点ページの領域いっぱいに広がる */
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    /* 領域に収まる最大の大きさにする。幅と高さのどちらで頭打ちになっても
+       縦横比を保てるよう、両辺を領域の大きさから直接求める */
+    width: min(100cqw, 100cqh * var(--map-w) / var(--map-h));
+    height: min(100cqh, 100cqw * var(--map-h) / var(--map-w));
     /* 拡大した地図が枠からはみ出さないようにする */
     overflow: hidden;
-    aspect-ratio: var(--map-w) / var(--map-h);
-    /* 縦に低い画面で地図全体を見るのに縦スクロールが要らないよう高さを抑える。
-       高さで頭打ちになったときは、縦横比を保つため幅も合わせて縮め、中央に寄せる */
-    width: 100%;
-    max-height: var(--map-max-height);
-    max-width: calc(var(--map-max-height) * var(--map-w) / var(--map-h));
-    margin-inline: auto;
     border-radius: var(--radius-box);
-    /* 等倍のときはページの縦スクロールに任せる */
-    touch-action: pan-y;
+    /* ページがスクロールしないため、タッチは常に地図の操作に使う */
+    touch-action: none;
     /* 画像が読み込まれるまでの下地。画像はテーマごとに用意するので地の色に合わせる */
     background-color: var(--color-base-200);
   }
@@ -221,57 +201,11 @@ const lightSources = await Promise.all(
   }
 
   /* 拡大の状態は拠点単位で持つため、親の .map-view に付く */
-  :global(.map-view.is-zoomed) .floor-switch__panel {
-    /* 拡大中はタッチを地図の移動に使う */
-    touch-action: none;
-  }
-
   :global(.map-view.is-zoomed) .floor-switch__canvas {
     cursor: grab;
   }
 
   :global(.map-view.is-zoomed.is-grabbing) .floor-switch__canvas {
     cursor: grabbing;
-  }
-
-  .floor-switch__controls {
-    position: absolute;
-    right: 0.5rem;
-    bottom: 0.5rem;
-    display: flex;
-    gap: 0.25rem;
-    padding: 0.25rem;
-    border-radius: var(--radius-field);
-    /* 地図の線に紛れないよう、ボタンの背後を暗く落とす */
-    background-color: color-mix(
-      in oklab,
-      var(--color-base-100) 70%,
-      transparent
-    );
-    backdrop-filter: blur(2px);
-    /* 地図の上に重ねるが、ドラッグの邪魔をしないようボタンの上だけ反応させる */
-    pointer-events: none;
-  }
-
-  .floor-switch__controls > * {
-    pointer-events: auto;
-  }
-
-  @media (width >= 40rem) {
-    .floor-switch {
-      grid-template-columns: auto minmax(0, 1fr);
-      /* 末尾の 1fr が余白を吸収し、階層ボタンが縦に間延びしないようにする */
-      grid-template-rows: repeat(var(--floor-count), auto) 1fr;
-    }
-
-    .floor-switch__label {
-      grid-column: 1;
-      min-width: 5rem;
-    }
-
-    .floor-switch__panel {
-      grid-column: 2;
-      grid-row: 1 / -1;
-    }
   }
 </style>

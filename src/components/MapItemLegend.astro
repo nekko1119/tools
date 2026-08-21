@@ -9,7 +9,7 @@ interface Props {
 const { itemTypes } = Astro.props;
 ---
 
-<ul class="map-legend" aria-label="アイコンの凡例">
+<ul class="map-legend map-overlay-chip" aria-label="アイコンの凡例">
   {
     itemTypes.map((itemType) => (
       <li class="map-legend__item">
@@ -25,9 +25,10 @@ const { itemTypes } = Astro.props;
     display: flex;
     flex-wrap: wrap;
     gap: 0.25rem 1rem;
-    margin-top: 0.75rem;
     font-size: 0.875rem;
     color: color-mix(in oklab, var(--color-base-content) 80%, transparent);
+    /* 地図に重ねるが操作するものではないため、ドラッグを素通しする */
+    pointer-events: none;
   }
 
   .map-legend__item {

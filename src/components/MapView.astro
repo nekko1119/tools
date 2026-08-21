@@ -6,7 +6,7 @@ import MapItemLegend from "./MapItemLegend.astro";
 
 interface Props {
   location: MapLocation;
-  /** 画像の alt の先頭に付ける名前。例: "大教会" */
+  /** 画像の alt の先頭に付ける名前。見出しにも使う。例: "大教会" */
   mapName: string;
   /** 拠点の全パターン。表示順に並んでいる */
   patterns: readonly MapItemPattern[];
@@ -31,41 +31,6 @@ const initialPattern = patterns[0];
 
 <div class="map-view" id={viewId}>
   {
-    hasPatternChoice && (
-      <div
-        class="pattern-switch"
-        role="radiogroup"
-        aria-label="アイテムのパターン"
-      >
-        <span class="pattern-switch__title">パターン</span>
-        {patterns.map((pattern, index) => {
-          const inputId = `${viewId}-pattern-${index}`;
-          // 表示の出し分けは名前で対応させる。添字だと絞り込み条件を変えるたびにずれる
-          return (
-            <>
-              <input
-                type="radio"
-                name={`${viewId}-pattern`}
-                id={inputId}
-                class="pattern-switch__input"
-                data-pattern-input={pattern.name}
-                data-map-type={pattern.mapTypeId}
-                checked={index === 0}
-              />
-              <label
-                for={inputId}
-                class="pattern-switch__label btn btn-sm btn-outline"
-              >
-                {pattern.name}
-              </label>
-            </>
-          );
-        })}
-      </div>
-    )
-  }
-
-  {
     usedTypes.map((type) => (
       <div
         class="map-view__type"
@@ -83,19 +48,140 @@ const initialPattern = patterns[0];
     ))
   }
 
-  <MapItemLegend itemTypes={itemTypes} />
+  <div class="map-view__bar map-view__bar--top">
+    <h1 class="map-view__title map-overlay-chip">{mapName}</h1>
+    {
+      hasPatternChoice && (
+        <div
+          class="pattern-switch"
+          role="radiogroup"
+          aria-label="アイテムのパターン"
+        >
+          <span class="pattern-switch__title map-overlay-chip">パターン</span>
+          {patterns.map((pattern, index) => {
+            const inputId = `${viewId}-pattern-${index}`;
+            // 表示の出し分けは名前で対応させる。添字だと絞り込み条件を変えるたびにずれる
+            return (
+              <>
+                <input
+                  type="radio"
+                  name={`${viewId}-pattern`}
+                  id={inputId}
+                  class="pattern-switch__input"
+                  data-pattern-input={pattern.name}
+                  data-map-type={pattern.mapTypeId}
+                  checked={index === 0}
+                />
+                <label
+                  for={inputId}
+                  class="pattern-switch__label btn btn-sm btn-outline"
+                >
+                  {pattern.name}
+                </label>
+              </>
+            );
+          })}
+        </div>
+      )
+    }
+  </div>
+
+  <div class="map-view__bar map-view__bar--bottom">
+    <MapItemLegend itemTypes={itemTypes} />
+    <div class="map-view__controls map-overlay-chip">
+      <button
+        type="button"
+        class="btn btn-sm btn-neutral"
+        data-zoom-action="in"
+        aria-label="地図を拡大する"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-neutral"
+        data-zoom-action="out"
+        aria-label="地図を縮小する"
+      >
+        −
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-neutral"
+        data-zoom-action="reset"
+      >
+        リセット
+      </button>
+    </div>
+  </div>
 </div>
 
 <script src="../scripts/nightreign/map-zoom.ts"></script>
 <script src="../scripts/nightreign/map-pattern.ts"></script>
 
 <style>
+  .map-view {
+    position: relative;
+    height: 100%;
+    display: grid;
+    /* 上下の帯は内容ぶんだけ取り、残りを地図と階層ボタンに渡す */
+    grid-template-rows: auto 1fr auto;
+    /* 地図の大きさをこの領域から決めるため、大きさの基準にする */
+    container-type: size;
+  }
+
+  /* 地図は帯の下に潜り、領域いっぱいを使う。ここには階層ボタンだけが流れる */
+  .map-view__type {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  .map-view__bar {
+    grid-column: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    /* 地図は絶対配置で重なるため、帯を上に出す */
+    position: relative;
+    z-index: 1;
+    /* 地図の上に重ねるが、ドラッグの邪魔をしないよう操作できる部分だけ反応させる */
+    pointer-events: none;
+  }
+
+  .map-view__bar--top {
+    grid-row: 1;
+  }
+
+  .map-view__bar--bottom {
+    grid-row: 3;
+    align-items: end;
+    justify-content: space-between;
+    /* 幅が足りないときは凡例の中で折り返させ、操作ボタンは右下に留める */
+    flex-wrap: nowrap;
+  }
+
+  .map-view__title {
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+
+  .map-view__controls {
+    display: flex;
+    flex: none;
+    gap: 0.25rem;
+  }
+
+  .map-view__controls > * {
+    pointer-events: auto;
+  }
+
   .pattern-switch {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
   }
 
   .pattern-switch__title {
@@ -111,6 +197,13 @@ const initialPattern = patterns[0];
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+
+  .pattern-switch__label {
+    pointer-events: auto;
+    /* 地図の上でも読めるよう、未選択でも背後を落とす */
+    background-color: var(--map-overlay-bg);
+    backdrop-filter: blur(2px);
   }
 
   .pattern-switch__input:checked + .pattern-switch__label {

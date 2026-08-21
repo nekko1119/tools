@@ -1,2 +1,15 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+/* 地図に重ねるUIの下地。地図の線に紛れないよう背後を落とす。
+   複数のコンポーネントにまたがるため、scoped ではなくここに置く */
+.map-view {
+  --map-overlay-bg: color-mix(in oklab, var(--color-base-100) 70%, transparent);
+}
+
+.map-overlay-chip {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-field);
+  background-color: var(--map-overlay-bg);
+  backdrop-filter: blur(2px);
+}
