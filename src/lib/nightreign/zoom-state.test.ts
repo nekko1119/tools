@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   clampPan,
+  coverState,
   INITIAL_ZOOM_STATE,
   MAX_ZOOM,
   panBy,
@@ -138,5 +139,61 @@ describe("panBy", () => {
       panX: -(MAP_WIDTH * 2 - HALF_WIDTH),
       panY: -(MAP_HEIGHT * 2 - HALF_HEIGHT),
     });
+  });
+});
+
+describe("coverState", () => {
+  it("縦長の表示領域では高さを埋める倍率になる", () => {
+    const covered = coverState(
+      MAP_WIDTH,
+      MAP_HEIGHT * 2,
+      MAP_WIDTH,
+      MAP_HEIGHT,
+    );
+
+    expect(covered.zoom).toBe(2);
+  });
+
+  it("横長の表示領域では幅を埋める倍率になる", () => {
+    const covered = coverState(
+      MAP_WIDTH * 2,
+      MAP_HEIGHT,
+      MAP_WIDTH,
+      MAP_HEIGHT,
+    );
+
+    expect(covered.zoom).toBe(2);
+  });
+
+  it("埋めた地図は表示領域の中央に来る", () => {
+    const covered = coverState(
+      MAP_WIDTH,
+      MAP_HEIGHT * 2,
+      MAP_WIDTH,
+      MAP_HEIGHT,
+    );
+
+    // 地図は表示領域の中央に置かれるため、地図の中心が表示領域の中心にあたる
+    expect(covered.panX + (MAP_WIDTH * covered.zoom) / 2).toBe(MAP_WIDTH / 2);
+    expect(covered.panY + (MAP_HEIGHT * covered.zoom) / 2).toBe(MAP_HEIGHT / 2);
+  });
+
+  it("表示領域と地図の縦横比が同じなら等倍になる", () => {
+    expect(coverState(MAP_WIDTH, MAP_HEIGHT, MAP_WIDTH, MAP_HEIGHT)).toEqual({
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+    });
+  });
+
+  it("埋めるのに上限を超える倍率が要るときは上限で止める", () => {
+    const covered = coverState(
+      MAP_WIDTH,
+      MAP_HEIGHT * 10,
+      MAP_WIDTH,
+      MAP_HEIGHT,
+    );
+
+    expect(covered.zoom).toBe(MAX_ZOOM);
   });
 });

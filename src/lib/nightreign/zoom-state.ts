@@ -45,6 +45,30 @@ export function clampPan(
 }
 
 /**
+ * 地図が表示領域を埋める倍率と、そのとき地図が中央に来る表示位置を求める。
+ * 地図と表示領域で縦横比が違うため、埋めると縦か横のどちらかは表示領域の外に出る。
+ * 大きさはどちらも等倍のときの値で受け取る。
+ */
+export function coverState(
+  frameWidth: number,
+  frameHeight: number,
+  mapWidth: number,
+  mapHeight: number,
+): ZoomState {
+  const zoom = clamp(
+    Math.max(frameWidth / mapWidth, frameHeight / mapHeight),
+    MIN_ZOOM,
+    MAX_ZOOM,
+  );
+  // 拡大は地図の左上を原点に効くため、中央を保つには広がった分の半分だけ戻す
+  return {
+    zoom,
+    panX: (mapWidth * (1 - zoom)) / 2,
+    panY: (mapHeight * (1 - zoom)) / 2,
+  };
+}
+
+/**
  * 指定した点を画面上で動かさないまま倍率を変える。
  * ホイールやピンチで、カーソルや指の位置を基準に拡大するために使う。
  * 点は等倍の地図の左上を原点とした座標で渡す。

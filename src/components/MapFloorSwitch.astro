@@ -1,5 +1,6 @@
 ---
 import { getImage, Image } from "astro:assets";
+import { MAX_ZOOM } from "../lib/nightreign/zoom-state";
 import type { MapType } from "../types/nightreign-map";
 import type { MapItemPattern } from "../types/nightreign-map-item";
 import MapItemIcon from "./MapItemIcon.astro";
@@ -28,8 +29,9 @@ const { width: mapWidth, height: mapHeight } = firstFloor.images.dark;
 
 /** 地図画像の表示幅の候補。ダーク用とライト用で揃える */
 const IMAGE_WIDTHS = [640, 1024, 1600, 2338];
-// 地図は画面いっぱいに広がるため、画面幅を上限として見積もる
-const IMAGE_SIZES = "100vw";
+// 地図は画面いっぱいに広がり、さらに最大倍率まで拡大できる。
+// 拡大しても粗くならないよう、その分の表示幅を見込んで候補を選ばせる
+const IMAGE_SIZES = `${MAX_ZOOM * 100}vw`;
 
 // ライトテーマ用は <source> に渡すため、あらかじめ srcset を組み立てておく
 const lightSources = await Promise.all(

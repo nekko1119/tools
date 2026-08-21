@@ -1,5 +1,6 @@
 import {
   clampPan,
+  coverState,
   INITIAL_ZOOM_STATE,
   MAX_ZOOM,
   MIN_ZOOM,
@@ -70,6 +71,7 @@ function setupMapZoom(root: HTMLElement): void {
     root.querySelectorAll<HTMLButtonElement>('[data-zoom-action="out"]'),
   );
 
+  // 実際の大きさを測るまでは等倍で持ち、組み込みの最後に初期表示へ合わせる
   let state: ZoomState = INITIAL_ZOOM_STATE;
   // 押されているポインタの位置。2つになったらピンチとして扱う
   const activePointers = new Map<number, Point>();
@@ -78,6 +80,17 @@ function setupMapZoom(root: HTMLElement): void {
   /** 表示中の階層の枠。隠れている階層やタイプは offsetParent が null になる */
   function visiblePanel(): HTMLElement {
     return panels.find((panel) => panel.offsetParent !== null) ?? panels[0]!;
+  }
+
+  /**
+   * 初期表示。地図が表示領域を埋めるところまで拡大した状態。
+   * 枠の大きさは画面によって変わるため、そのつど測り直す。
+   */
+  function initialState(): ZoomState {
+    const panel = visiblePanel();
+    const frame = panel.getBoundingClientRect();
+    const box = mapBoxOf(panel);
+    return coverState(frame.width, frame.height, box.width, box.height);
   }
 
   function applyState(): void {
@@ -222,7 +235,7 @@ function setupMapZoom(root: HTMLElement): void {
         zoomTo(panel, center, state.zoom / ZOOM_STEP);
         break;
       case "reset":
-        state = INITIAL_ZOOM_STATE;
+        state = initialState();
         applyState();
         break;
       default:
@@ -239,6 +252,7 @@ function setupMapZoom(root: HTMLElement): void {
   });
   resizeObserver.observe(root);
 
+  state = initialState();
   applyState();
 }
 
