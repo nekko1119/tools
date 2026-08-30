@@ -55,11 +55,13 @@ patterns:
         - { item: common_chest, x: 1430, y: 890 }
       1f:
         - { item: rare_chest, x: 700, y: 760 }
-        - { item: corpse, x: 1660, y: 820 }
+        - { item: corpse, x: 1660, y: 800 }
   - name: 聖(信託の使者たち)
     type: b
     floors:
       2f:
         - { item: rare_chest, x: 1060, y: 1140 }
+        - { item: corpse, x: 1350, y: 620 }
       1f:
         - { item: sacred_seal, x: 800, y: 1160 }
+        - { item: corpse, x: 1580, y: 1040 }
