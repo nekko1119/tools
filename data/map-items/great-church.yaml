@@ -61,7 +61,10 @@ patterns:
     floors:
       2f:
         - { item: rare_chest, x: 1060, y: 1140 }
-        - { item: corpse, x: 1350, y: 620 }
+        - { item: corpse, x: 1300, y: 620 }
+        - { item: corpse, x: 1240, y: 300 }
+        - { item: corpse, x: 630, y: 900 }
       1f:
         - { item: sacred_seal, x: 800, y: 1160 }
         - { item: corpse, x: 1580, y: 1040 }
+        - { item: corpse, x: 880, y: 320 }
