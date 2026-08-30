@@ -11,7 +11,7 @@ const STONE_COLOR = "#b9bec6";
  * ここの id を data/map-items/<拠点>.yaml の item に書く。
  * アイコンの色は地図の明暗が反転しても見えるよう、明るい塗りで揃える。
  */
-export const nightreignMapItemTypes: readonly MapItemType[] = [
+export const nightreignMapItemTypes = [
   {
     id: "common_chest",
     label: "宝箱",
@@ -39,4 +39,4 @@ export const nightreignMapItemTypes: readonly MapItemType[] = [
     icon: sacredSealIcon,
     fillColor: STONE_COLOR,
   },
-];
+] as const satisfies readonly MapItemType[];

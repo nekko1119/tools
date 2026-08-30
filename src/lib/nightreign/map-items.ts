@@ -58,7 +58,7 @@ function parseItem(
   const itemType = itemTypes.find((candidate) => candidate.id === typeId);
   if (itemType === undefined) {
     throw new Error(
-      `${context}の item「${typeId}」は定義されていません。使えるのは ${itemTypes.map((t) => t.id).join(" / ")} です`,
+      `${context}の item「${typeId}」はこの拠点では使えません。使えるのは ${itemTypes.map((t) => t.id).join(" / ")} です`,
     );
   }
   return {
@@ -71,7 +71,6 @@ function parseItem(
 function parsePattern(
   source: unknown,
   location: MapLocation,
-  itemTypes: readonly MapItemType[],
   context: string,
 ): MapItemPattern {
   const record = asRecord(source, context);
@@ -110,7 +109,7 @@ function parsePattern(
     ).map((rawItem, index) =>
       parseItem(
         rawItem,
-        itemTypes,
+        location.itemTypes,
         width,
         height,
         `${context}の階層「${floorId}」の${index + 1}件目`,
@@ -128,7 +127,6 @@ function parsePattern(
 export function parseMapItemPlacement(
   source: unknown,
   location: MapLocation,
-  itemTypes: readonly MapItemType[],
   sourceName: string,
 ): MapItemPlacement {
   const root = asRecord(source, `${sourceName} の内容`);
@@ -139,7 +137,6 @@ export function parseMapItemPlacement(
     parsePattern(
       rawPattern,
       location,
-      itemTypes,
       `${sourceName} の${index + 1}件目のパターン`,
     ),
   );
@@ -162,14 +159,11 @@ export function parseMapItemPlacement(
  * 拠点のアイテム配置を読み込む。
  * 配置ファイルがまだ無い拠点は、アイテムを持たないものとして扱う。
  */
-export function loadMapItemPlacement(
-  location: MapLocation,
-  itemTypes: readonly MapItemType[],
-): MapItemPlacement {
+export function loadMapItemPlacement(location: MapLocation): MapItemPlacement {
   const relativePath = `${PLACEMENT_DIR}/${location.slug}.yaml`;
   const parsed = readOptionalDataYaml(relativePath);
   if (parsed === null || parsed === undefined) {
     return EMPTY_PLACEMENT;
   }
-  return parseMapItemPlacement(parsed, location, itemTypes, relativePath);
+  return parseMapItemPlacement(parsed, location, relativePath);
 }

@@ -1,6 +1,6 @@
 ---
 import type { MapLocation } from "../types/nightreign-map";
-import type { MapItemPattern, MapItemType } from "../types/nightreign-map-item";
+import type { MapItemPattern } from "../types/nightreign-map-item";
 import MapFloorSwitch from "./MapFloorSwitch.astro";
 import MapItemLegend from "./MapItemLegend.astro";
 
@@ -10,11 +10,9 @@ interface Props {
   mapName: string;
   /** 拠点の全パターン。表示順に並んでいる */
   patterns: readonly MapItemPattern[];
-  /** 凡例に並べるアイテム種別。定義されているものをすべて渡す */
-  itemTypes: readonly MapItemType[];
 }
 
-const { location, mapName, patterns, itemTypes } = Astro.props;
+const { location, mapName, patterns } = Astro.props;
 
 const viewId = `map-${location.slug}`;
 
@@ -87,7 +85,7 @@ const initialPattern = patterns[0];
   </div>
 
   <div class="map-view__bar map-view__bar--bottom">
-    <MapItemLegend itemTypes={itemTypes} />
+    <MapItemLegend itemTypes={location.itemTypes} />
     <div class="map-view__controls map-overlay-chip">
       <button
         type="button"

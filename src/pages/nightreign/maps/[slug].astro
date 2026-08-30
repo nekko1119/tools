@@ -1,7 +1,6 @@
 ---
 import type { GetStaticPaths } from "astro";
 import MapView from "../../../components/MapView.astro";
-import { nightreignMapItemTypes } from "../../../data/nightreign-map-item-types";
 import { nightreignMaps } from "../../../data/nightreign-maps";
 import DisclaimerFooter from "../../../components/DisclaimerFooter.astro";
 import MapLayout from "../../../layouts/MapLayout.astro";
@@ -23,7 +22,7 @@ const base = import.meta.env.BASE_URL;
 const translations = loadTranslations();
 const locationName = translate(translations, location.englishName);
 
-const placement = loadMapItemPlacement(location, nightreignMapItemTypes);
+const placement = loadMapItemPlacement(location);
 
 // 地図が横長のため、ヘッダーとフッターを既定より広くする
 const maxWidthClass = "max-w-7xl";
@@ -46,7 +45,6 @@ const maxWidthClass = "max-w-7xl";
       location={location}
       mapName={locationName}
       patterns={placement.patterns}
-      itemTypes={nightreignMapItemTypes}
     />
   </main>
   <DisclaimerFooter maxWidthClass={maxWidthClass} />

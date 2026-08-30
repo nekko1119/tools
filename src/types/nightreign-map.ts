@@ -1,4 +1,5 @@
 import type { ImageMetadata } from "astro";
+import type { MapItemType } from "./nightreign-map-item";
 
 /**
  * 1つの階層の地図画像。
@@ -34,5 +35,10 @@ export type MapLocation = {
   slug: string;
   /** nightreign_translations.yaml のキーになる英名 */
   englishName: string;
+  /**
+   * この拠点に出るアイテム種別。凡例に並べるものであり、
+   * 配置ファイルの item に書ける範囲でもある
+   */
+  itemTypes: readonly MapItemType[];
   types: readonly MapType[];
 };

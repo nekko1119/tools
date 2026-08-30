@@ -4,7 +4,7 @@
 # 画像を開いて読んだ座標をそのまま書いてください。アイコンの中心がその位置に来ます。
 #   画像: src/assets/maps/great-church/great_church_type_a_dark_*.webp
 #
-# item に書ける値 (src/data/nightreign-map-item-types.ts で定義):
+# item に書ける値 (src/data/nightreign-maps.ts の itemTypes で拠点ごとに決める):
 #   common_chest ... 宝箱
 #   rare_chest   ... レア宝箱
 #   corpse       ... 遺体

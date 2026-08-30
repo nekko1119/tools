@@ -12,7 +12,8 @@ import ruinsTypeADark1f from "../assets/maps/ruins/ruins_type_a_dark_1f.webp";
 import ruinsTypeADarkB1 from "../assets/maps/ruins/ruins_type_a_dark_b1.webp";
 import ruinsTypeALight1f from "../assets/maps/ruins/ruins_type_a_light_1f.webp";
 import ruinsTypeALightB1 from "../assets/maps/ruins/ruins_type_a_light_b1.webp";
-import { defineMapType } from "../lib/nightreign/map";
+import { defineMapType, selectMapItemTypes } from "../lib/nightreign/map";
+import { nightreignMapItemTypes } from "./nightreign-map-item-types";
 import type { MapLocation } from "../types/nightreign-map";
 
 /**
@@ -23,6 +24,12 @@ export const nightreignMaps: readonly MapLocation[] = [
   {
     slug: "great-church",
     englishName: "Great Church",
+    itemTypes: selectMapItemTypes(nightreignMapItemTypes, [
+      "common_chest",
+      "rare_chest",
+      "corpse",
+      "sacred_seal",
+    ]),
     types: [
       defineMapType({
         id: "a",
@@ -81,6 +88,12 @@ export const nightreignMaps: readonly MapLocation[] = [
   {
     slug: "ruins",
     englishName: "Ruins",
+    // 遺跡に聖印は無い
+    itemTypes: selectMapItemTypes(nightreignMapItemTypes, [
+      "common_chest",
+      "rare_chest",
+      "corpse",
+    ]),
     // TODO: タイプBを追加する。階層構成は未確認。
     // 地図画像がまだ無いため保留。用意できたら src/assets/maps/ruins/ に
     // ruins_type_b_<テーマ>_<階層>.webp を置き、その階層構成のとおりに定義を足す。

@@ -11,9 +11,18 @@ const image = {
   format: "webp",
 } as ImageMetadata;
 
+const icon = { width: 16, height: 16 } as MapItemIcon;
+
+const ITEM_TYPES: readonly MapItemType[] = [
+  { id: "common_chest", label: "宝箱", icon },
+  { id: "rare_chest", label: "レア宝箱", icon },
+  { id: "corpse", label: "遺体", icon },
+];
+
 const location: MapLocation = {
   slug: "great-church",
   englishName: "Great Church",
+  itemTypes: ITEM_TYPES,
   types: [
     {
       id: "a",
@@ -31,14 +40,6 @@ const location: MapLocation = {
   ],
 };
 
-const icon = { width: 16, height: 16 } as MapItemIcon;
-
-const ITEM_TYPES: readonly MapItemType[] = [
-  { id: "common_chest", label: "宝箱", icon },
-  { id: "rare_chest", label: "レア宝箱", icon },
-  { id: "corpse", label: "遺体", icon },
-];
-
 function itemTypeOf(id: string): MapItemType {
   const itemType = ITEM_TYPES.find((candidate) => candidate.id === id);
   if (itemType === undefined) {
@@ -48,7 +49,7 @@ function itemTypeOf(id: string): MapItemType {
 }
 
 function parse(source: unknown) {
-  return parseMapItemPlacement(source, location, ITEM_TYPES, "テスト.yaml");
+  return parseMapItemPlacement(source, location, "テスト.yaml");
 }
 
 describe("parseMapItemPlacement", () => {
