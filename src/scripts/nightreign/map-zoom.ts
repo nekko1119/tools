@@ -8,6 +8,7 @@ import {
   zoomAtPoint,
   type ZoomState,
 } from "../../lib/nightreign/zoom-state";
+import { wheelDeltaInPixels } from "../../lib/nightreign/wheel-delta";
 
 /** ボタン1回あたりの倍率の変化量 */
 const ZOOM_STEP = 1.5;
@@ -76,6 +77,8 @@ function setupMapZoom(root: HTMLElement): void {
   // 押されているポインタの位置。2つになったらピンチとして扱う
   const activePointers = new Map<number, Point>();
   let previousPinchDistance = 0;
+  // 2本指の中点。平行に動かしたぶんを表示位置に反映するために持つ
+  let previousPinchCenter: Point | null = null;
 
   /** 表示中の階層の枠。隠れている階層やタイプは offsetParent が null になる */
   function visiblePanel(): HTMLElement {
@@ -107,6 +110,17 @@ function setupMapZoom(root: HTMLElement): void {
     }
   }
 
+  /** 表示位置をずらす */
+  function panByPixels(
+    panel: HTMLElement,
+    deltaX: number,
+    deltaY: number,
+  ): void {
+    const box = mapBoxOf(panel);
+    state = panBy(state, deltaX, deltaY, box.width, box.height);
+    applyState();
+  }
+
   /** 地図の左上を原点とした座標を基準に倍率を変える */
   function zoomTo(panel: HTMLElement, focus: Point, nextZoom: number): void {
     const box = mapBoxOf(panel);
@@ -125,16 +139,22 @@ function setupMapZoom(root: HTMLElement): void {
     panel.addEventListener(
       "wheel",
       (event) => {
-        // トラックパッドのピンチは ctrl 付きのホイールとして届く。
-        // 素のホイールはページの縦スクロールに残す
-        if (!event.ctrlKey) {
+        // ブラウザ自身のページ拡大やスクロールを止めて地図の操作に使う
+        event.preventDefault();
+
+        // トラックパッドのピンチは ctrl 付きのホイールとして届く
+        if (event.ctrlKey) {
+          const nextZoom =
+            state.zoom * Math.exp(-event.deltaY * TRACKPAD_PINCH_SENSITIVITY);
+          zoomTo(panel, { x: event.clientX, y: event.clientY }, nextZoom);
           return;
         }
-        // ブラウザ自身のページ拡大を止めて地図の拡大に使う
-        event.preventDefault();
-        const nextZoom =
-          state.zoom * Math.exp(-event.deltaY * TRACKPAD_PINCH_SENSITIVITY);
-        zoomTo(panel, { x: event.clientX, y: event.clientY }, nextZoom);
+
+        // ctrl が付かないホイールは2本指スワイプとして表示位置に使う。
+        // 指の動きに地図が付いてくるよう、移動量の符号を反転する
+        const frame = panel.getBoundingClientRect();
+        const delta = wheelDeltaInPixels(event, frame.width, frame.height);
+        panByPixels(panel, -delta.x, -delta.y);
       },
       { passive: false },
     );
@@ -148,6 +168,7 @@ function setupMapZoom(root: HTMLElement): void {
       if (activePointers.size === 2) {
         const [first, second] = Array.from(activePointers.values());
         previousPinchDistance = distanceBetween(first!, second!);
+        previousPinchCenter = centerBetween(first!, second!);
       }
       root.classList.add("is-grabbing");
     });
@@ -160,25 +181,28 @@ function setupMapZoom(root: HTMLElement): void {
       const current = { x: event.clientX, y: event.clientY };
       activePointers.set(event.pointerId, current);
 
-      const box = mapBoxOf(panel);
       if (activePointers.size === 1) {
-        state = panBy(
-          state,
-          current.x - previous.x,
-          current.y - previous.y,
-          box.width,
-          box.height,
-        );
-        applyState();
+        panByPixels(panel, current.x - previous.x, current.y - previous.y);
         return;
       }
       if (activePointers.size === 2) {
         const [first, second] = Array.from(activePointers.values());
+        const pinchCenter = centerBetween(first!, second!);
+        // 2本指を平行に動かしたぶんは、ドラッグと同じように表示位置へ反映する
+        if (previousPinchCenter !== null) {
+          panByPixels(
+            panel,
+            pinchCenter.x - previousPinchCenter.x,
+            pinchCenter.y - previousPinchCenter.y,
+          );
+        }
+        previousPinchCenter = pinchCenter;
+
         const pinchDistance = distanceBetween(first!, second!);
         if (previousPinchDistance > 0) {
           zoomTo(
             panel,
-            centerBetween(first!, second!),
+            pinchCenter,
             state.zoom * (pinchDistance / previousPinchDistance),
           );
         }
@@ -195,6 +219,7 @@ function setupMapZoom(root: HTMLElement): void {
           panel.releasePointerCapture(event.pointerId);
         }
         previousPinchDistance = 0;
+        previousPinchCenter = null;
         if (activePointers.size === 0) {
           root.classList.remove("is-grabbing");
         }
