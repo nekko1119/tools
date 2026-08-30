@@ -8,6 +8,10 @@ import greatChurchTypeBDark1f from "../assets/maps/great-church/great_church_typ
 import greatChurchTypeBDark2f from "../assets/maps/great-church/great_church_type_b_dark_2f.webp";
 import greatChurchTypeBLight1f from "../assets/maps/great-church/great_church_type_b_light_1f.webp";
 import greatChurchTypeBLight2f from "../assets/maps/great-church/great_church_type_b_light_2f.webp";
+import ruinsTypeADark1f from "../assets/maps/ruins/ruins_type_a_dark_1f.webp";
+import ruinsTypeADarkB1 from "../assets/maps/ruins/ruins_type_a_dark_b1.webp";
+import ruinsTypeALight1f from "../assets/maps/ruins/ruins_type_a_light_1f.webp";
+import ruinsTypeALightB1 from "../assets/maps/ruins/ruins_type_a_light_b1.webp";
 import { defineMapType } from "../lib/nightreign/map";
 import type { MapLocation } from "../types/nightreign-map";
 
@@ -74,10 +78,37 @@ export const nightreignMaps: readonly MapLocation[] = [
       }),
     ],
   },
-  // TODO: 遺跡(Ruins)を追加する。タイプA・タイプBの2通りで、どちらも 1F と B1 を持つ。
-  // 地図画像がまだ無いため保留。用意できたら src/assets/maps/ruins/ に
-  // ruins_type_{a,b}_{dark,light}_{1f,b1}.webp の8枚を置き、ここに定義を足す。
-  // 階層は上層から下層の順に並べ(1F → B1)、defaultFloor は "1f" とする。
-  // あわせて data/map-items/ruins.yaml に各タイプのパターンを1つ以上書く。
-  // パターンがタイプを指す作りのため、パターンが無いとそのタイプの地図を選べない。
+  {
+    slug: "ruins",
+    englishName: "Ruins",
+    // TODO: タイプBを追加する。階層構成は未確認。
+    // 地図画像がまだ無いため保留。用意できたら src/assets/maps/ruins/ に
+    // ruins_type_b_<テーマ>_<階層>.webp を置き、その階層構成のとおりに定義を足す。
+    // あわせて data/map-items/ruins.yaml にタイプBのパターンを書く。
+    // パターンがタイプを指す作りのため、パターンが無いとそのタイプの地図を選べない。
+    types: [
+      defineMapType({
+        id: "a",
+        defaultFloor: "1f",
+        floors: [
+          {
+            id: "1f",
+            label: "1F",
+            images: {
+              dark: ruinsTypeADark1f,
+              light: ruinsTypeALight1f,
+            },
+          },
+          {
+            id: "b1",
+            label: "B1",
+            images: {
+              dark: ruinsTypeADarkB1,
+              light: ruinsTypeALightB1,
+            },
+          },
+        ],
+      }),
+    ],
+  },
 ];
